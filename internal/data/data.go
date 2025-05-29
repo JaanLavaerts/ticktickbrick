@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 )
 
 type Team struct {
@@ -39,4 +40,8 @@ func LoadData[T any](fileString string) ([]T, error) {
 	}
 
 	return data, nil
+}
+
+func PlayerPlayedFor(player Player, team Team) bool {
+	return slices.Contains(player.Teams, team.Abbreviation)
 }
