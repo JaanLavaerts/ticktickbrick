@@ -1,6 +1,10 @@
 package game
 
-import "time"
+import (
+	"time"
+
+	"github.com/JaanLavaerts/ticktickbrick/internal/data"
+)
 
 type RoomState int
 
@@ -12,8 +16,9 @@ const (
 
 type Room struct {
 	Users            []User
-	CurrentTurn      string // id of a user
+	CurrentTurn      int // index of a user in []Users
 	MentionedPlayers []string
+	CurrentTeam      data.Team
 	State            RoomState
 	StartTime        time.Time
 }

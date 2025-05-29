@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"os"
 	"slices"
 )
@@ -44,4 +45,8 @@ func LoadData[T any](fileString string) ([]T, error) {
 
 func PlayerPlayedFor(player Player, team Team) bool {
 	return slices.Contains(player.Teams, team.Abbreviation)
+}
+
+func RandomTeam(teams []Team) Team {
+	return teams[rand.IntN(len(teams))]
 }
