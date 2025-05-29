@@ -13,7 +13,7 @@ type Team struct {
 }
 
 type Player struct {
-	ID        string   `json:"id"`
+	Id        string   `json:"id"`
 	Name      string   `json:"name"`
 	Positions []string `json:"positions"`
 	Teams     []string `json:"teams"`
