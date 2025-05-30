@@ -42,8 +42,7 @@ func StartGame(users []User, team data.Team) Room {
 	return *room
 }
 
-func NextTurn(room *Room, teams []data.Team) {
-	newTeam := data.RandomTeam(teams)
+func NextTurn(room *Room, newTeam data.Team) {
 	room.CurrentTeam = newTeam
 
 	isNextUserAlive := room.Users[room.CurrentTurn+1].Lives != 0
@@ -58,18 +57,21 @@ func NextTurn(room *Room, teams []data.Team) {
 }
 
 func SubmitAnswer(room *Room, userId string, player data.Player) (bool, error) {
+	userIdx := getUserIdxById(room.Users, userId)
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
 	room.MentionedPlayers = append(room.MentionedPlayers, player)
 
-	//TODO: remove life of user when answer is wrong
-	//TODO: set hasAnswered to true
+	if answer == false {
+		RemoveLife(room, userId)
+	}
 
+	room.Users[userIdx].HasAnswered = true
 	return answer, nil
 }
 
 func RemoveLife(room *Room, userId string) {
-	user := getUserById(room.Users, userId)
-	user.Lives--
+	userIdx := getUserIdxById(room.Users, userId)
+	room.Users[userIdx].Lives--
 }
 
 func IsGameOver(room *Room) bool {
@@ -96,12 +98,12 @@ func GetWinner(room *Room) string {
 	return winnerUsername
 }
 
-func getUserById(users []User, userId string) User {
-	var user User
+func getUserIdxById(users []User, userId string) int {
+	var idx int
 	for i := range users {
 		if users[i].Id == userId {
-			user = users[i]
+			idx = i
 		}
 	}
-	return user
+	return idx
 }
