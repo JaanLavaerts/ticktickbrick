@@ -102,3 +102,49 @@ func TestSubmitAnswer(t *testing.T) {
 		t.Errorf("got %v, wanted %v", playerIsMentioned, true)
 	}
 }
+
+func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
+	// TODO
+}
+
+func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
+	room := newTestRoom()
+	player := data.Player{
+		Id:        "2544",
+		Name:      "LeBron James",
+		Positions: []string{"Forward"},
+		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
+	}
+	team := data.Team{
+		Name:         "Indiana Pacers",
+		Abbreviation: "IND",
+	}
+	room.CurrentTeam = team
+	SubmitAnswer(&room, "1", player)
+	wasLifeRemoved := room.Users[0].Lives == 2
+
+	if !wasLifeRemoved {
+		t.Errorf("got %v, wanted %v", wasLifeRemoved, true)
+	}
+}
+
+func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
+	room := newTestRoom()
+	player := data.Player{
+		Id:        "2544",
+		Name:      "LeBron James",
+		Positions: []string{"Forward"},
+		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
+	}
+	team := data.Team{
+		Name:         "Miami Heat",
+		Abbreviation: "MIA",
+	}
+	room.CurrentTeam = team
+	SubmitAnswer(&room, "1", player)
+	wasNoLifeRemoved := room.Users[0].Lives == 3
+
+	if !wasNoLifeRemoved {
+		t.Errorf("got %v, wanted %v", wasNoLifeRemoved, true)
+	}
+}
