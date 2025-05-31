@@ -104,7 +104,19 @@ func TestSubmitAnswer(t *testing.T) {
 }
 
 func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
-	// TODO
+	room := newTestRoom()
+	player := data.Player{
+		Id:        "2544",
+		Name:      "LeBron James",
+		Positions: []string{"Forward"},
+		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
+	}
+	room.MentionedPlayers = append(room.MentionedPlayers, player)
+	answer, err := SubmitAnswer(&room, "1", player)
+
+	if answer != false || err == nil {
+		t.Errorf("got %v, wanted %v", answer, err)
+	}
 }
 
 func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {

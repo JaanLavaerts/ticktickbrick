@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
@@ -55,9 +56,14 @@ func NextTurn(room *Room, newTeam data.Team) {
 	}
 }
 
-func SubmitAnswer(room *Room, userId string, player data.Player) bool {
+func SubmitAnswer(room *Room, userId string, player data.Player) (bool, error) {
 	userIdx := getUserIdxById(room.Users, userId)
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
+
+	if isPlayerMentioned(player, room.MentionedPlayers) {
+		return false, fmt.Errorf("player already mentioned")
+	}
+
 	room.MentionedPlayers = append(room.MentionedPlayers, player)
 
 	if !answer {
@@ -65,7 +71,7 @@ func SubmitAnswer(room *Room, userId string, player data.Player) bool {
 	}
 
 	room.Users[userIdx].HasAnswered = true
-	return answer
+	return answer, nil
 }
 
 func RemoveLife(room *Room, userId string) {
@@ -97,6 +103,7 @@ func GetWinner(room *Room) string {
 	return winnerUsername
 }
 
+// helper functions
 func getUserIdxById(users []User, userId string) int {
 	var idx int
 	for i := range users {
@@ -105,4 +112,13 @@ func getUserIdxById(users []User, userId string) int {
 		}
 	}
 	return idx
+}
+
+func isPlayerMentioned(player data.Player, players []data.Player) bool {
+	for i := range players {
+		if players[i].Id == player.Id {
+			return true
+		}
+	}
+	return false
 }
