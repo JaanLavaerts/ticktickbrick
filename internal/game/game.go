@@ -44,15 +44,14 @@ func StartGame(users []User, team data.Team) Room {
 
 func NextTurn(room *Room, newTeam data.Team) {
 	room.CurrentTeam = newTeam
+	startIndex := room.CurrentTurn
 
-	isNextUserAlive := room.Users[room.CurrentTurn+1].Lives != 0
-
-	if room.CurrentTurn == len(room.Users)-1 && isNextUserAlive {
-		room.CurrentTurn = 0
-	} else if isNextUserAlive {
-		room.CurrentTurn = room.CurrentTurn + 1
-	} else {
-		room.State = RoomState(ENDED)
+	for i := 1; i <= len(room.Users); i++ {
+		nextIndex := (startIndex + i) % len(room.Users)
+		if room.Users[nextIndex].Lives > 0 {
+			room.CurrentTurn = nextIndex
+			return
+		}
 	}
 }
 
