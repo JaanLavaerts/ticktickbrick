@@ -80,3 +80,25 @@ func TestNextTurnUserDeadWrap(t *testing.T) {
 		t.Errorf("got %v, wanted %v", room.CurrentTurn, nextTurn)
 	}
 }
+
+func TestSubmitAnswer(t *testing.T) {
+	room := newTestRoom()
+	player := data.Player{
+		Id:        "2544",
+		Name:      "LeBron James",
+		Positions: []string{"Forward"},
+		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
+	}
+
+	SubmitAnswer(&room, "1", player)
+
+	userHasAnswered := room.Users[0].HasAnswered == true
+	playerIsMentioned := room.MentionedPlayers[0].Id == player.Id
+
+	if !userHasAnswered {
+		t.Errorf("got %v, wanted %v", userHasAnswered, true)
+	}
+	if !playerIsMentioned {
+		t.Errorf("got %v, wanted %v", playerIsMentioned, true)
+	}
+}

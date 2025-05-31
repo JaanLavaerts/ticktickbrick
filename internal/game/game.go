@@ -55,17 +55,17 @@ func NextTurn(room *Room, newTeam data.Team) {
 	}
 }
 
-func SubmitAnswer(room *Room, userId string, player data.Player) (bool, error) {
+func SubmitAnswer(room *Room, userId string, player data.Player) bool {
 	userIdx := getUserIdxById(room.Users, userId)
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
 	room.MentionedPlayers = append(room.MentionedPlayers, player)
 
-	if answer == false {
+	if !answer {
 		RemoveLife(room, userId)
 	}
 
 	room.Users[userIdx].HasAnswered = true
-	return answer, nil
+	return answer
 }
 
 func RemoveLife(room *Room, userId string) {
