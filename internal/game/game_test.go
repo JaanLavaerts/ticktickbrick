@@ -160,3 +160,39 @@ func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 		t.Errorf("got %v, wanted %v", wasNoLifeRemoved, true)
 	}
 }
+
+func TestIsGameOver(t *testing.T) {
+	room := newTestRoom()
+	for i := range room.Users {
+		room.Users[i].Lives = 0
+	}
+
+	isGameOver := IsGameOver(&room)
+	if !isGameOver {
+		t.Errorf("got %v, wanted %v", isGameOver, true)
+	}
+
+}
+
+func TestGetWinnerGameIsOver(t *testing.T) {
+	room := newTestRoom()
+
+	for i := range room.Users {
+		room.Users[i].Lives = 0
+	}
+	room.Users[2].Lives = 1 // winner stays
+	winner, _ := GetWinner(&room)
+
+	if winner != "userThree" {
+		t.Errorf("got %v, wanted %v", winner, "userThree")
+	}
+}
+
+func TestGetWinnerGameIsNotOver(t *testing.T) {
+	room := newTestRoom()
+	winner, err := GetWinner(&room)
+
+	if winner != "" || err == nil {
+		t.Errorf("got %v, wanted %v", winner, err)
+	}
+}

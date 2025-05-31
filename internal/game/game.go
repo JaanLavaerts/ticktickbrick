@@ -91,8 +91,13 @@ func IsGameOver(room *Room) bool {
 	return aliveCount <= 1
 }
 
-func GetWinner(room *Room) string {
+func GetWinner(room *Room) (string, error) {
 	var winnerUsername string
+	isGameOver := IsGameOver(room)
+
+	if !isGameOver {
+		return "", fmt.Errorf("game is not over yet, no winner")
+	}
 
 	for i := range room.Users {
 		user := room.Users[i]
@@ -100,7 +105,7 @@ func GetWinner(room *Room) string {
 			winnerUsername = user.Username
 		}
 	}
-	return winnerUsername
+	return winnerUsername, nil
 }
 
 // helper functions
