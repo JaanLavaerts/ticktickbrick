@@ -1,27 +1,48 @@
 package room
 
-import "github.com/JaanLavaerts/ticktickbrick/internal/game"
+import (
+	"fmt"
+	"maps"
+
+	"github.com/JaanLavaerts/ticktickbrick/internal/game"
+)
 
 type RoomManager struct {
 	rooms map[string]*game.Room
 }
 
-var roomManager = &RoomManager{
+var Manager = &RoomManager{
 	rooms: make(map[string]*game.Room),
 }
 
 func (r *RoomManager) AddRoom(room *game.Room) {
-	roomManager.rooms[room.Id] = room
+	r.rooms[room.Id] = room
 }
 
 func (r *RoomManager) GetRoom(id string) *game.Room {
-	return roomManager.rooms[id]
+	return r.rooms[id]
 }
 
 func (r *RoomManager) GetAllRooms() map[string]*game.Room {
 	rooms := make(map[string]*game.Room)
-	for key, val := range roomManager.rooms {
-		rooms[key] = val
-	}
+	maps.Copy(rooms, r.rooms)
 	return rooms
+}
+
+func (r *RoomManager) DoesRoomExist(room *game.Room) bool {
+	_, ok := r.rooms[room.Id]
+	if ok {
+		return true
+	}
+	return false
+}
+
+func JoinRoom(room *game.Room, user game.User) error {
+	doesRoomExist := Manager.DoesRoomExist(room)
+	if !doesRoomExist {
+		return fmt.Errorf("room doesnt exist")
+	}
+	room.Users = append(room.Users, user)
+
+	return nil
 }

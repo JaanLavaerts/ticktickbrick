@@ -30,36 +30,47 @@ func newTestRoom() game.Room {
 	team := data.RandomTeam(teams)
 
 	// reset global state
-	roomManager.rooms = make(map[string]*game.Room)
+	Manager.rooms = make(map[string]*game.Room)
 	return game.StartGame(users, team)
 }
 
 func TestAddRoom(t *testing.T) {
 	room := newTestRoom()
-	roomManager.AddRoom(&room)
+	Manager.AddRoom(&room)
 
-	if len(roomManager.rooms) <= 0 {
-		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
+	if len(Manager.rooms) <= 0 {
+		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
+	}
+}
+
+func TestJoinRoom(t *testing.T) {
+	room := newTestRoom()
+	Manager.AddRoom(&room)
+
+	if len(Manager.rooms) <= 0 {
+		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
 	}
 }
 
 func TestGetRoom(t *testing.T) {
 	room := newTestRoom()
 	room.Id = "1"
-	roomManager.AddRoom(&room)
-	firstRoom := roomManager.GetRoom(room.Id)
+	Manager.AddRoom(&room)
+	firstRoom := Manager.GetRoom(room.Id)
 
 	if firstRoom.Id != "1" {
-		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
+		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
 	}
 }
 
 func TestGetAllRooms(t *testing.T) {
 	room := newTestRoom()
-	roomManager.AddRoom(&room)
-	allRoomsCount := len(roomManager.GetAllRooms())
+	Manager.AddRoom(&room)
+	allRoomsCount := len(Manager.GetAllRooms())
 
 	if allRoomsCount <= 0 {
-		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
+		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
 	}
 }
+
+// TODO: write joinRoom test
