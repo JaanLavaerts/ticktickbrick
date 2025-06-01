@@ -29,6 +29,8 @@ func newTestRoom() game.Room {
 	teams, _ := data.LoadData[data.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
+	// reset global state
+	roomManager.rooms = make(map[string]*game.Room)
 	return game.StartGame(users, team)
 }
 
@@ -37,6 +39,27 @@ func TestAddRoom(t *testing.T) {
 	roomManager.AddRoom(&room)
 
 	if len(roomManager.rooms) <= 0 {
+		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
+	}
+}
+
+func TestGetRoom(t *testing.T) {
+	room := newTestRoom()
+	room.Id = "1"
+	roomManager.AddRoom(&room)
+	firstRoom := roomManager.GetRoom(room.Id)
+
+	if firstRoom.Id != "1" {
+		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
+	}
+}
+
+func TestGetAllRooms(t *testing.T) {
+	room := newTestRoom()
+	roomManager.AddRoom(&room)
+	allRoomsCount := len(roomManager.GetAllRooms())
+
+	if allRoomsCount <= 0 {
 		t.Errorf("got %v, wanted %v", len(roomManager.rooms), 1)
 	}
 }
