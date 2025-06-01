@@ -2,18 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/JaanLavaerts/ticktickbrick/internal/data"
+	"github.com/JaanLavaerts/ticktickbrick/internal/handlers"
 )
 
 func main() {
-	players, err := data.LoadData[data.Player]("assets/players.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	teams, err := data.LoadData[data.Team]("assets/teams.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(players, teams)
+	http.HandleFunc("/ping", handlers.Ping)
+
+	fmt.Println("server running on port 8080")
+	http.ListenAndServe(":8080", nil)
 }

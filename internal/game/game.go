@@ -16,6 +16,7 @@ const (
 )
 
 type Room struct {
+	Id               string
 	Users            []User
 	CurrentTurn      int // index of a user in []Users
 	MentionedPlayers []data.Player
@@ -32,9 +33,11 @@ type User struct {
 }
 
 func StartGame(users []User, team data.Team) Room {
+	randomId := generateTimestampID()
 	room := &Room{
+		Id:               randomId,
 		Users:            users,
-		CurrentTurn:      0, // TODO: should be random in the future, be ware of NextTurn logic
+		CurrentTurn:      0, // TODO: should be random in the future, be ware of NextTurn logic/ tests
 		CurrentTeam:      team,
 		MentionedPlayers: nil,
 		State:            RoomState(INPROGRESS),
@@ -126,4 +129,8 @@ func isPlayerMentioned(player data.Player, players []data.Player) bool {
 		}
 	}
 	return false
+}
+
+func generateTimestampID() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
