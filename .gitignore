@@ -34,4 +34,4 @@ go.work.sum
 # Other
 .DS_Store
 .air.toml
-tmp/*
+tmp/
