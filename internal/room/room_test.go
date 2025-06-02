@@ -43,15 +43,6 @@ func TestAddRoom(t *testing.T) {
 	}
 }
 
-func TestJoinRoom(t *testing.T) {
-	room := newTestRoom()
-	Manager.AddRoom(&room)
-
-	if len(Manager.rooms) <= 0 {
-		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
-	}
-}
-
 func TestGetRoom(t *testing.T) {
 	room := newTestRoom()
 	room.Id = "1"
@@ -74,3 +65,14 @@ func TestGetAllRooms(t *testing.T) {
 }
 
 // TODO: write joinRoom test
+func TestJoinRoom(t *testing.T) {
+	room := newTestRoom()
+	Manager.AddRoom(&room)
+	user := game.User{Id: "3", Username: "userThree", Lives: 3}
+	JoinRoom(&room, user)
+
+	if len(room.Users) != 4 {
+		t.Errorf("got %v, wanted %v", len(room.Users), 4)
+	}
+
+}
