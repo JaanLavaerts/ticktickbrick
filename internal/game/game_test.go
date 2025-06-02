@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
-func newTestRoom() Room {
-	users := []User{
+func newTestRoom() models.Room {
+	users := []models.User{
 		{
 			Id:       "1",
 			Username: "userOne",
@@ -25,7 +26,7 @@ func newTestRoom() Room {
 		},
 	}
 
-	teams, _ := data.LoadData[data.Team]("../../assets/teams.json")
+	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
 	return StartGame(users, team)
@@ -83,7 +84,7 @@ func TestNextTurnUserDeadWrap(t *testing.T) {
 
 func TestSubmitAnswer(t *testing.T) {
 	room := newTestRoom()
-	player := data.Player{
+	player := models.Player{
 		Id:        "2544",
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
@@ -105,7 +106,7 @@ func TestSubmitAnswer(t *testing.T) {
 
 func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 	room := newTestRoom()
-	player := data.Player{
+	player := models.Player{
 		Id:        "2544",
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
@@ -121,13 +122,13 @@ func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 
 func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 	room := newTestRoom()
-	player := data.Player{
+	player := models.Player{
 		Id:        "2544",
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
 	}
-	team := data.Team{
+	team := models.Team{
 		Name:         "Indiana Pacers",
 		Abbreviation: "IND",
 	}
@@ -142,13 +143,13 @@ func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 
 func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 	room := newTestRoom()
-	player := data.Player{
+	player := models.Player{
 		Id:        "2544",
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
 	}
-	team := data.Team{
+	team := models.Team{
 		Name:         "Miami Heat",
 		Abbreviation: "MIA",
 	}

@@ -5,48 +5,24 @@ import (
 	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
-type RoomState int
-
-const (
-	WAITING    RoomState = iota // auto increment = 0
-	INPROGRESS                  // = 1
-	ENDED                       // = 2
-)
-
-type Room struct {
-	Id               string
-	Users            []User
-	CurrentTurn      int // index of a user in []Users
-	MentionedPlayers []data.Player
-	CurrentTeam      data.Team
-	State            RoomState
-	StartTime        time.Time
-}
-
-type User struct {
-	Id          string
-	Username    string
-	Lives       int
-	HasAnswered bool // has the player answered yet this round
-}
-
-func StartGame(users []User, team data.Team) Room {
+func StartGame(users []models.User, team models.Team) models.Room {
 	randomId := generateTimestampID()
-	room := &Room{
+	room := &models.Room{
 		Id:               randomId,
 		Users:            users,
 		CurrentTurn:      0, // TODO: should be random in the future, be ware of NextTurn logic/ tests
 		CurrentTeam:      team,
 		MentionedPlayers: nil,
-		State:            RoomState(INPROGRESS),
+		State:            models.RoomState(models.INPROGRESS),
 		StartTime:        time.Now(),
 	}
 	return *room
 }
 
-func NextTurn(room *Room, newTeam data.Team) {
+func NextTurn(room *models.Room, newTeam models.Team) {
 	room.CurrentTeam = newTeam
 	startIndex := room.CurrentTurn
 
@@ -59,7 +35,7 @@ func NextTurn(room *Room, newTeam data.Team) {
 	}
 }
 
-func SubmitAnswer(room *Room, userId string, player data.Player) (bool, error) {
+func SubmitAnswer(room *models.Room, userId string, player models.Player) (bool, error) {
 	userIdx := getUserIdxById(room.Users, userId)
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
 
@@ -77,12 +53,12 @@ func SubmitAnswer(room *Room, userId string, player data.Player) (bool, error) {
 	return answer, nil
 }
 
-func RemoveLife(room *Room, userId string) {
+func RemoveLife(room *models.Room, userId string) {
 	userIdx := getUserIdxById(room.Users, userId)
 	room.Users[userIdx].Lives--
 }
 
-func IsGameOver(room *Room) bool {
+func IsGameOver(room *models.Room) bool {
 	var aliveCount int
 
 	for i := range room.Users {
@@ -94,7 +70,7 @@ func IsGameOver(room *Room) bool {
 	return aliveCount <= 1
 }
 
-func GetWinner(room *Room) (string, error) {
+func GetWinner(room *models.Room) (string, error) {
 	var winnerUsername string
 	isGameOver := IsGameOver(room)
 
@@ -112,7 +88,7 @@ func GetWinner(room *Room) (string, error) {
 }
 
 // helper functions
-func getUserIdxById(users []User, userId string) int {
+func getUserIdxById(users []models.User, userId string) int {
 	var idx int
 	for i := range users {
 		if users[i].Id == userId {
@@ -122,7 +98,7 @@ func getUserIdxById(users []User, userId string) int {
 	return idx
 }
 
-func isPlayerMentioned(player data.Player, players []data.Player) bool {
+func isPlayerMentioned(player models.Player, players []models.Player) bool {
 	for i := range players {
 		if players[i].Id == player.Id {
 			return true

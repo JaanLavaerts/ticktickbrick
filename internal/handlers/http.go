@@ -31,6 +31,8 @@ func CreateRoom(w http.ResponseWriter, req *http.Request) {
 
 	fmt.Println(id)
 
-	// room := game.StartGame()
-	// room.Manager.AddRoom()
+}
+
+func JoinRoom(w http.ResponseWriter, req *http.Request) {
+
 }

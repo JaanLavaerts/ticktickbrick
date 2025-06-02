@@ -7,19 +7,9 @@ import (
 	"math/rand/v2"
 	"os"
 	"slices"
+
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
-
-type Team struct {
-	Name         string `json:"name"`
-	Abbreviation string `json:"abbreviation"`
-}
-
-type Player struct {
-	Id        string   `json:"id"`
-	Name      string   `json:"name"`
-	Positions []string `json:"positions"`
-	Teams     []string `json:"teams"`
-}
 
 func LoadData[T any](fileString string) ([]T, error) {
 	var data []T
@@ -43,10 +33,10 @@ func LoadData[T any](fileString string) ([]T, error) {
 	return data, nil
 }
 
-func PlayerPlayedFor(player Player, team Team) bool {
+func PlayerPlayedFor(player models.Player, team models.Team) bool {
 	return slices.Contains(player.Teams, team.Abbreviation)
 }
 
-func RandomTeam(teams []Team) Team {
+func RandomTeam(teams []models.Team) models.Team {
 	return teams[rand.IntN(len(teams))]
 }

@@ -7,15 +7,16 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/handlers"
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
 func main() {
 
-	Players, err := data.LoadData[data.Player]("assets/players.json")
+	Players, err := data.LoadData[models.Player]("assets/players.json")
 	if err != nil {
 		fmt.Println(err)
 	}
-	Teams, err := data.LoadData[data.Team]("assets/teams.json")
+	Teams, err := data.LoadData[models.Team]("assets/teams.json")
 	if err != nil {
 		fmt.Println(err)
 	}

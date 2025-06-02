@@ -1,17 +1,21 @@
 package data
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+)
 
 // stupid unit test to know syntax
 func TestPlayerPlayedFor(t *testing.T) {
-	player := &Player{
+	player := &models.Player{
 		Id:        "2544",
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
 	}
 
-	team := &Team{
+	team := &models.Team{
 		Name:         "Miami Heat",
 		Abbreviation: "MIA",
 	}

@@ -5,10 +5,11 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/game"
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
-func newTestRoom() game.Room {
-	users := []game.User{
+func newTestRoom() models.Room {
+	users := []models.User{
 		{
 			Id:       "1",
 			Username: "userOne",
@@ -26,11 +27,11 @@ func newTestRoom() game.Room {
 		},
 	}
 
-	teams, _ := data.LoadData[data.Team]("../../assets/teams.json")
+	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
 	// reset global state
-	Manager.rooms = make(map[string]*game.Room)
+	Manager.rooms = make(map[string]*models.Room)
 	return game.StartGame(users, team)
 }
 
@@ -67,7 +68,7 @@ func TestGetAllRooms(t *testing.T) {
 func TestJoinRoom(t *testing.T) {
 	room := newTestRoom()
 	Manager.AddRoom(&room)
-	user := game.User{Id: "3", Username: "userThree", Lives: 3}
+	user := models.User{Id: "3", Username: "userThree", Lives: 3}
 	JoinRoom(&room, user)
 
 	if len(room.Users) != 4 {
