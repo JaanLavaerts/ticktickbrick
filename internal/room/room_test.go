@@ -64,7 +64,6 @@ func TestGetAllRooms(t *testing.T) {
 	}
 }
 
-// TODO: write joinRoom test
 func TestJoinRoom(t *testing.T) {
 	room := newTestRoom()
 	Manager.AddRoom(&room)
