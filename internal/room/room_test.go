@@ -2,9 +2,9 @@ package room
 
 import (
 	"testing"
+	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
-	"github.com/JaanLavaerts/ticktickbrick/internal/game"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
@@ -32,7 +32,17 @@ func newTestRoom() models.Room {
 
 	// reset global state
 	Manager.rooms = make(map[string]*models.Room)
-	return game.StartGame(users, team)
+
+	room := models.Room{
+		Id:               "123",
+		Users:            users,
+		CurrentTurn:      0,
+		CurrentTeam:      team,
+		MentionedPlayers: nil,
+		State:            models.RoomState(models.INPROGRESS),
+		StartTime:        time.Now(),
+	}
+	return room
 }
 
 func TestAddRoom(t *testing.T) {

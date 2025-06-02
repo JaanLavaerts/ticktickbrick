@@ -9,7 +9,7 @@ import (
 // stupid unit test to know syntax
 func TestPlayerPlayedFor(t *testing.T) {
 	player := &models.Player{
-		Id:        "2544",
+		Id:        2544,
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},

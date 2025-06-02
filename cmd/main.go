@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -12,19 +11,19 @@ import (
 
 func main() {
 
-	Players, err := data.LoadData[models.Player]("assets/players.json")
+	players, err := data.LoadData[models.Player]("assets/players.json")
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(players, err)
 	}
-	Teams, err := data.LoadData[models.Team]("assets/teams.json")
+	teams, err := data.LoadData[models.Team]("assets/teams.json")
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(teams, err)
 	}
-
-	fmt.Println(Players, Teams)
 
 	http.HandleFunc("/ping", handlers.Ping)
-	http.HandleFunc("/create-room", handlers.CreateRoom)
+
+	// dependency injection of teams
+	http.HandleFunc("/create-room", handlers.CreateRoomHandler(teams))
 
 	log.Println("server running on port 8080")
 	err = http.ListenAndServe(":8080", nil)

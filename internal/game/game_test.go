@@ -2,6 +2,7 @@ package game
 
 import (
 	"testing"
+	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
@@ -28,8 +29,16 @@ func newTestRoom() models.Room {
 
 	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
-
-	return StartGame(users, team)
+	room := models.Room{
+		Id:               "123",
+		Users:            users,
+		CurrentTurn:      0,
+		CurrentTeam:      team,
+		MentionedPlayers: nil,
+		State:            models.RoomState(models.INPROGRESS),
+		StartTime:        time.Now(),
+	}
+	return room
 }
 
 func TestNextTurnUserAlive(t *testing.T) {
@@ -85,7 +94,7 @@ func TestNextTurnUserDeadWrap(t *testing.T) {
 func TestSubmitAnswer(t *testing.T) {
 	room := newTestRoom()
 	player := models.Player{
-		Id:        "2544",
+		Id:        2544,
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
@@ -107,7 +116,7 @@ func TestSubmitAnswer(t *testing.T) {
 func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 	room := newTestRoom()
 	player := models.Player{
-		Id:        "2544",
+		Id:        2544,
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
@@ -123,7 +132,7 @@ func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 	room := newTestRoom()
 	player := models.Player{
-		Id:        "2544",
+		Id:        2544,
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
@@ -144,7 +153,7 @@ func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 	room := newTestRoom()
 	player := models.Player{
-		Id:        "2544",
+		Id:        2544,
 		Name:      "LeBron James",
 		Positions: []string{"Forward"},
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},

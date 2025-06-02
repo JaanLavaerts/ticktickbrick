@@ -5,31 +5,63 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	// "github.com/JaanLavaerts/ticktickbrick/internal/game"
-	// "github.com/JaanLavaerts/ticktickbrick/internal/room"
+
+	"github.com/JaanLavaerts/ticktickbrick/internal/data"
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+	"github.com/JaanLavaerts/ticktickbrick/internal/room"
 )
+
+type APIResponse struct {
+	StatusCode int    `json:"status_code"`
+	Msg        string `json:"msg"`
+	Data       any    `json:"data,omitempty"`
+}
+
+func writeResponse(w http.ResponseWriter, status int, msg string, data any) {
+	response := &APIResponse{
+		StatusCode: status,
+		Msg:        msg,
+		Data:       data,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(response)
+}
 
 func Ping(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "pong")
 }
 
-func CreateRoom(w http.ResponseWriter, req *http.Request) {
+func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		team := data.RandomTeam(teams)
 
-	body, err := io.ReadAll(req.Body)
-	defer req.Body.Close()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			msg := "invalid body"
+			writeResponse(w, 400, msg, nil)
+			return
+		}
+		defer req.Body.Close()
+
+		var user models.User
+		err = json.Unmarshal(body, &user)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		createdRoom, err := room.CreateRoom(user, team)
+		if err != nil {
+			msg := "you already have a room"
+			writeResponse(w, 409, msg, nil)
+			return
+		}
+
+		room.Manager.AddRoom(&createdRoom)
+		msg := "room created succesfully"
+		writeResponse(w, 200, msg, nil)
 	}
-
-	var id string
-	err = json.Unmarshal(body, &id)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	fmt.Println(id)
 
 }
 

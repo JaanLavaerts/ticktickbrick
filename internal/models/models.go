@@ -14,21 +14,21 @@ const (
 )
 
 type Room struct {
-	Id               string
-	Users            []User
-	CurrentTurn      int // index of a user in []Users
-	MentionedPlayers []Player
-	CurrentTeam      Team
-	State            RoomState
-	StartTime        time.Time
+	Id               string    `json:"id"`
+	Users            []User    `json:"users"`
+	CurrentTurn      int       `json:"current_turn"` // index of a user in []Users
+	MentionedPlayers []Player  `json:"mentioned_players"`
+	CurrentTeam      Team      `json:"current_team"`
+	State            RoomState `json:"state"`
+	StartTime        time.Time `json:"start_time"`
 }
 
 // game types
 type User struct {
-	Id          string
-	Username    string
-	Lives       int
-	HasAnswered bool // has the player answered yet this round
+	Id          string `json:"id"`
+	Username    string `json:"username"`
+	Lives       int    `json:"lives"`
+	HasAnswered bool   `json:"has_answered"`
 }
 
 // data types
@@ -38,7 +38,7 @@ type Team struct {
 }
 
 type Player struct {
-	Id        string   `json:"id"`
+	Id        int      `json:"id"`
 	Name      string   `json:"name"`
 	Positions []string `json:"positions"`
 	Teams     []string `json:"teams"`

@@ -2,25 +2,10 @@ package game
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
-
-func StartGame(users []models.User, team models.Team) models.Room {
-	randomId := generateTimestampID()
-	room := &models.Room{
-		Id:               randomId,
-		Users:            users,
-		CurrentTurn:      0, // TODO: should be random in the future, be ware of NextTurn logic/ tests
-		CurrentTeam:      team,
-		MentionedPlayers: nil,
-		State:            models.RoomState(models.INPROGRESS),
-		StartTime:        time.Now(),
-	}
-	return *room
-}
 
 func NextTurn(room *models.Room, newTeam models.Team) {
 	room.CurrentTeam = newTeam
@@ -105,8 +90,4 @@ func isPlayerMentioned(player models.Player, players []models.Player) bool {
 		}
 	}
 	return false
-}
-
-func generateTimestampID() string {
-	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
