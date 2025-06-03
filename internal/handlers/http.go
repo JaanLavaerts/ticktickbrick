@@ -10,6 +10,7 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 	"github.com/JaanLavaerts/ticktickbrick/internal/room"
+	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
 
 type APIResponse struct {
@@ -26,6 +27,11 @@ func writeResponse(w http.ResponseWriter, status int, msg string, data any) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+	if data != nil {
+		log.Printf("%d - %s: %s", status, msg, data)
+	} else {
+		log.Printf("%d - %s", status, msg)
+	}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -39,8 +45,7 @@ func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
 
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			msg := "invalid body"
-			writeResponse(w, 400, msg, nil)
+			writeResponse(w, 400, util.InvalidInputError, nil)
 			return
 		}
 		defer req.Body.Close()
@@ -54,20 +59,44 @@ func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
 
 		createdRoom, err := room.CreateRoom(user, team)
 		if err != nil {
-			msg := "you already have a room"
-			writeResponse(w, 409, msg, nil)
-			log.Printf("%d user already has a room: %s", 409, createdRoom.Id)
+			writeResponse(w, 409, util.UserInRoomError, createdRoom.Id)
 			return
 		}
 
 		room.Manager.AddRoom(&createdRoom)
-		msg := "room created succesfully"
-		log.Printf("%d new room created: %s", 200, createdRoom.Id)
-		writeResponse(w, 200, msg, nil)
+		writeResponse(w, 200, util.RoomCreatedSuccess, createdRoom.Id)
 	}
 
 }
 
-func JoinRoom(w http.ResponseWriter, req *http.Request) {
+func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		writeResponse(w, 400, util.InvalidInputError, nil)
+		return
+	}
+	defer req.Body.Close()
 
+	var payload struct {
+		RoomId string      `json:"room_id"`
+		User   models.User `json:"user"`
+	}
+
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	roomToJoin, err := room.Manager.GetRoom(payload.RoomId)
+	if err != nil {
+		writeResponse(w, 404, util.RoomNotFoundError, nil)
+		return
+	}
+	err = room.JoinRoom(roomToJoin, payload.User)
+	if err != nil {
+		writeResponse(w, 400, util.UserInRoomError, roomToJoin.Id)
+		return
+	}
+	writeResponse(w, 200, util.UserJoinedRoomSuccess, roomToJoin.Id)
 }

@@ -58,7 +58,7 @@ func TestGetRoom(t *testing.T) {
 	room := newTestRoom()
 	room.Id = "1"
 	Manager.AddRoom(&room)
-	firstRoom := Manager.GetRoom(room.Id)
+	firstRoom, _ := Manager.GetRoom(room.Id)
 
 	if firstRoom.Id != "1" {
 		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
