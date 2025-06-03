@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
@@ -55,11 +56,13 @@ func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
 		if err != nil {
 			msg := "you already have a room"
 			writeResponse(w, 409, msg, nil)
+			log.Printf("%d user already has a room: %s", 409, createdRoom.Id)
 			return
 		}
 
 		room.Manager.AddRoom(&createdRoom)
 		msg := "room created succesfully"
+		log.Printf("%d new room created: %s", 200, createdRoom.Id)
 		writeResponse(w, 200, msg, nil)
 	}
 
