@@ -10,4 +10,5 @@ const (
 	// success
 	UserJoinedRoomSuccess = "user joined room succesfully"
 	RoomCreatedSuccess    = "room created succesfully"
+	RoomsRetrievedSuccess = "rooms retrieved succesfully"
 )

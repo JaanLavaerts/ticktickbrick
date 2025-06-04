@@ -100,3 +100,8 @@ func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	writeResponse(w, 200, util.UserJoinedRoomSuccess, roomToJoin.Id)
 }
+
+func GetAllRooms(w http.ResponseWriter, req *http.Request) {
+	allRooms := room.Manager.GetAllRooms()
+	writeResponse(w, 200, util.RoomsRetrievedSuccess, allRooms)
+}
