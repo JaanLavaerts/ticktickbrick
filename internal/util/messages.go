@@ -5,6 +5,7 @@ const (
 	UserInRoomError         = "user is already in a room"
 	UserDoesntHaveRoomError = "user doesnt have a room"
 	RoomNotFoundError       = "room doesn't exist"
+	NoRoomsError            = "no rooms exist"
 	InvalidInputError       = "invalid input"
 
 	// success

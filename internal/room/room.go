@@ -70,10 +70,13 @@ func (r *RoomManager) GetRoom(id string) (*models.Room, error) {
 	return room, nil
 }
 
-func (r *RoomManager) GetAllRooms() map[string]*models.Room {
+func (r *RoomManager) GetAllRooms() (map[string]*models.Room, error) {
 	rooms := make(map[string]*models.Room)
 	maps.Copy(rooms, r.rooms)
-	return rooms
+	if len(rooms) == 0 {
+		return nil, fmt.Errorf(util.NoRoomsError)
+	}
+	return rooms, nil
 }
 
 func (r *RoomManager) GetRoomByUser(user models.User) (*models.Room, error) {

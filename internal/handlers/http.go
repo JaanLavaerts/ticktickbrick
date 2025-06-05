@@ -102,6 +102,10 @@ func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetAllRooms(w http.ResponseWriter, req *http.Request) {
-	allRooms := room.Manager.GetAllRooms()
+	allRooms, err := room.Manager.GetAllRooms()
+	if err != nil {
+		writeResponse(w, 404, util.NoRoomsError, nil)
+		return
+	}
 	writeResponse(w, 200, util.RoomsRetrievedSuccess, allRooms)
 }

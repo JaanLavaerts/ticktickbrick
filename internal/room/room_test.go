@@ -68,10 +68,11 @@ func TestGetRoom(t *testing.T) {
 func TestGetAllRooms(t *testing.T) {
 	room := newTestRoom()
 	Manager.AddRoom(&room)
-	allRoomsCount := len(Manager.GetAllRooms())
+	allRooms, _ := Manager.GetAllRooms()
+	allRoomsCount := len(allRooms)
 
 	if allRoomsCount <= 0 {
-		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
+		t.Errorf("got %v, wanted %v", allRoomsCount, 1)
 	}
 }
 
@@ -84,5 +85,4 @@ func TestJoinRoom(t *testing.T) {
 	if len(room.Users) != 4 {
 		t.Errorf("got %v, wanted %v", len(room.Users), 4)
 	}
-
 }
