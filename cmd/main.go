@@ -26,6 +26,7 @@ func main() {
 	http.HandleFunc("/create-room", handlers.CreateRoomHandler(teams))
 	http.HandleFunc("/join-room", handlers.JoinRoomHandler)
 	http.HandleFunc("/get-rooms", handlers.GetAllRooms)
+	http.HandleFunc("/ws", handlers.WsHandler)
 
 	log.Println("server running on port 8080")
 	err = http.ListenAndServe(":8080", nil)
