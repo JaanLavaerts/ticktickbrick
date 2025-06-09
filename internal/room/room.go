@@ -19,42 +19,48 @@ var Manager = &RoomManager{
 	users_rooms: make(map[string]string), // map of user_id:room_id to keep track of which user is in what room
 }
 
-func CreateRoom(user models.User, team models.Team) (models.Room, error) {
-	if otherRoom, err := Manager.GetRoomByUser(user); err == nil {
-		return *otherRoom, fmt.Errorf(util.UserInRoomError)
+func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {
+	if otherRoom, err := Manager.GetRoomByUser(client.User); err == nil {
+		return *otherRoom, fmt.Errorf(util.UserAlreadyInRoomError)
 	}
+
+	clients := make(map[string]*models.Client)
+	clients[client.User.Id] = client
 
 	randomId := generateTimestampID()
 	room := &models.Room{
 		Id:               randomId,
-		Users:            []models.User{user},
-		CurrentTurn:      0, // TODO: should be random in the future, be ware of NextTurn logic/ tests
+		Clients:          clients,
+		CurrentTurn:      0, // TODO: should prob be random in the future, be ware of NextTurn logic/ tests
+		TurnOrder:        []string{client.User.Id},
 		CurrentTeam:      team,
 		MentionedPlayers: nil,
-		State:            models.RoomState(models.INPROGRESS),
+		State:            models.RoomState(models.WAITING),
 		StartTime:        time.Now(),
 	}
+
+	client.Room = room
 	Manager.rooms[room.Id] = room
-	Manager.users_rooms[user.Id] = room.Id
+	Manager.users_rooms[client.User.Id] = room.Id
 	return *room, nil
 }
 
-func JoinRoom(room *models.Room, user models.User) error {
-	if room == nil || user.Id == "" {
+// TODO: DOUBLE CHECK THIS LOGIC AM VERY TRIED RN
+func JoinRoom(room *models.Room, client *models.Client) error {
+	if room == nil || client.User.Id == "" {
 		return fmt.Errorf(util.InvalidInputError)
 	}
 
-	if Manager.HasRoom(user) {
-		return fmt.Errorf(util.UserInRoomError)
+	if Manager.HasRoom(client.User) {
+		return fmt.Errorf(util.UserAlreadyInRoomError)
 	}
 
 	if !Manager.RoomExists(room.Id) {
 		return fmt.Errorf(util.RoomNotFoundError)
 	}
 
-	room.Users = append(room.Users, user)
-	Manager.users_rooms[user.Id] = room.Id
-
+	room.Clients[client.User.Id] = client
+	Manager.users_rooms[client.User.Id] = room.Id
 	return nil
 }
 
