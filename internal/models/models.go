@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 // room types
@@ -14,13 +16,21 @@ const (
 )
 
 type Room struct {
-	Id               string    `json:"id"`
-	Users            []User    `json:"users"`
-	CurrentTurn      int       `json:"current_turn"` // index of a user in []Users
-	MentionedPlayers []Player  `json:"mentioned_players"`
-	CurrentTeam      Team      `json:"current_team"`
-	State            RoomState `json:"state"`
-	StartTime        time.Time `json:"start_time"`
+	Id               string             `json:"id"`
+	Clients          map[string]*Client `json:"clients"`
+	CurrentTurn      int                `json:"current_turn"` // index of a user in []Users
+	TurnOrder        []string           `json:"turn_order"`   // slice of client IDs
+	MentionedPlayers []Player           `json:"mentioned_players"`
+	CurrentTeam      Team               `json:"current_team"`
+	State            RoomState          `json:"state"`
+	StartTime        time.Time          `json:"start_time"`
+}
+
+type Client struct {
+	User User `json:"user"`
+	Conn *websocket.Conn
+	Room *Room
+	Send chan []byte
 }
 
 // game types

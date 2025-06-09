@@ -9,36 +9,31 @@ import (
 )
 
 func newTestRoom() models.Room {
-	users := []models.User{
-		{
-			Id:       "1",
-			Username: "userOne",
-			Lives:    3,
-		},
-		{
-			Id:       "2",
-			Username: "userTwo",
-			Lives:    3,
-		},
-		{
-			Id:       "3",
-			Username: "userThree",
-			Lives:    3,
-		},
-	}
-
 	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
-	room := models.Room{
+
+	room := &models.Room{
 		Id:               "123",
-		Users:            users,
+		Clients:          make(map[string]*models.Client),
 		CurrentTurn:      0,
+		TurnOrder:        []string{"1", "2", "3"},
 		CurrentTeam:      team,
 		MentionedPlayers: nil,
 		State:            models.RoomState(models.INPROGRESS),
 		StartTime:        time.Now(),
 	}
-	return room
+
+	room.Clients["1"] = &models.Client{
+		User: models.User{Id: "1", Username: "user_1", Lives: 3},
+	}
+	room.Clients["2"] = &models.Client{
+		User: models.User{Id: "2", Username: "user_2", Lives: 3},
+	}
+	room.Clients["3"] = &models.Client{
+		User: models.User{Id: "3", Username: "user_3", Lives: 3},
+	}
+
+	return *room
 }
 
 func TestNextTurnUserAlive(t *testing.T) {
@@ -57,7 +52,7 @@ func TestNextTurnUserDead(t *testing.T) {
 	// check if nextturn is on index 2 if index 1 is dead
 	nextTurn := room.CurrentTurn + 2
 
-	room.Users[1].Lives = 0
+	room.Clients["2"].User.Lives = 0
 	NextTurn(&room, room.CurrentTeam)
 
 	if room.CurrentTurn != nextTurn {
@@ -68,7 +63,7 @@ func TestNextTurnUserDead(t *testing.T) {
 func TestNextTurnUserAliveWrap(t *testing.T) {
 	room := newTestRoom()
 	// start at last player, check if it wraps to first player
-	room.CurrentTurn = len(room.Users) - 1
+	room.CurrentTurn = len(room.Clients) - 1
 	nextTurn := 0
 
 	NextTurn(&room, room.CurrentTeam)
@@ -80,10 +75,10 @@ func TestNextTurnUserAliveWrap(t *testing.T) {
 func TestNextTurnUserDeadWrap(t *testing.T) {
 	room := newTestRoom()
 	// start at last player, check if it wraps to second player if first player is dead
-	room.CurrentTurn = len(room.Users) - 1
+	room.CurrentTurn = len(room.Clients) - 1
 	nextTurn := 1
 
-	room.Users[0].Lives = 0
+	room.Clients["1"].User.Lives = 0
 	NextTurn(&room, room.CurrentTeam)
 
 	if room.CurrentTurn != nextTurn {
@@ -102,7 +97,7 @@ func TestSubmitAnswer(t *testing.T) {
 
 	SubmitAnswer(&room, "1", player)
 
-	userHasAnswered := room.Users[0].HasAnswered == true
+	userHasAnswered := room.Clients["1"].User.HasAnswered == true
 	playerIsMentioned := room.MentionedPlayers[0].Id == player.Id
 
 	if !userHasAnswered {
@@ -143,7 +138,7 @@ func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 	}
 	room.CurrentTeam = team
 	SubmitAnswer(&room, "1", player)
-	wasLifeRemoved := room.Users[0].Lives == 2
+	wasLifeRemoved := room.Clients["1"].User.Lives == 2
 
 	if !wasLifeRemoved {
 		t.Errorf("got %v, wanted %v", wasLifeRemoved, true)
@@ -164,7 +159,7 @@ func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 	}
 	room.CurrentTeam = team
 	SubmitAnswer(&room, "1", player)
-	wasNoLifeRemoved := room.Users[0].Lives == 3
+	wasNoLifeRemoved := room.Clients["1"].User.Lives == 3
 
 	if !wasNoLifeRemoved {
 		t.Errorf("got %v, wanted %v", wasNoLifeRemoved, true)
@@ -173,8 +168,8 @@ func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 
 func TestIsGameOver(t *testing.T) {
 	room := newTestRoom()
-	for i := range room.Users {
-		room.Users[i].Lives = 0
+	for i := range room.Clients {
+		room.Clients[i].User.Lives = 0
 	}
 
 	isGameOver := IsGameOver(&room)
@@ -187,14 +182,14 @@ func TestIsGameOver(t *testing.T) {
 func TestGetWinnerGameIsOver(t *testing.T) {
 	room := newTestRoom()
 
-	for i := range room.Users {
-		room.Users[i].Lives = 0
+	for i := range room.Clients {
+		room.Clients[i].User.Lives = 0
 	}
-	room.Users[2].Lives = 1 // winner stays
+	room.Clients["3"].User.Lives = 1 // winner stays
 	winner, _ := GetWinner(&room)
 
-	if winner != "userThree" {
-		t.Errorf("got %v, wanted %v", winner, "userThree")
+	if winner != "user_3" {
+		t.Errorf("got %v, wanted %v", winner, "user_3")
 	}
 }
 

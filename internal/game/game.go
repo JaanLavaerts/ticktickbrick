@@ -5,15 +5,18 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
 
 func NextTurn(room *models.Room, newTeam models.Team) {
 	room.CurrentTeam = newTeam
 	startIndex := room.CurrentTurn
 
-	for i := 1; i <= len(room.Users); i++ {
-		nextIndex := (startIndex + i) % len(room.Users)
-		if room.Users[nextIndex].Lives > 0 {
+	for i := 1; i <= len(room.Clients); i++ {
+		nextIndex := (startIndex + i) % len(room.Clients)
+		nextClient := room.Clients[room.TurnOrder[nextIndex]]
+
+		if nextClient.User.Lives > 0 {
 			room.CurrentTurn = nextIndex
 			return
 		}
@@ -21,8 +24,12 @@ func NextTurn(room *models.Room, newTeam models.Team) {
 }
 
 func SubmitAnswer(room *models.Room, userId string, player models.Player) (bool, error) {
-	userIdx := getUserIdxById(room.Users, userId)
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
+	client, ok := room.Clients[userId]
+
+	if !ok {
+		return false, fmt.Errorf(util.UserNotInRoomError)
+	}
 
 	if isPlayerMentioned(player, room.MentionedPlayers) {
 		return false, fmt.Errorf("player already mentioned")
@@ -31,56 +38,44 @@ func SubmitAnswer(room *models.Room, userId string, player models.Player) (bool,
 	room.MentionedPlayers = append(room.MentionedPlayers, player)
 
 	if !answer {
-		RemoveLife(room, userId)
+		client.User.Lives--
 	}
 
-	room.Users[userIdx].HasAnswered = true
+	client.User.HasAnswered = true
 	return answer, nil
 }
 
-func RemoveLife(room *models.Room, userId string) {
-	userIdx := getUserIdxById(room.Users, userId)
-	room.Users[userIdx].Lives--
+func RemoveLife(room *models.Room, userId string) error {
+	client, ok := room.Clients[userId]
+	if !ok {
+		return fmt.Errorf(util.UserNotInRoomError)
+	}
+	client.User.Lives--
+	return nil
 }
 
 func IsGameOver(room *models.Room) bool {
-	var aliveCount int
-
-	for i := range room.Users {
-		user := room.Users[i]
-		if user.Lives != 0 {
-			aliveCount++
-		}
-	}
-	return aliveCount <= 1
+	clients := getAliveClients(room)
+	return len(clients) <= 1
 }
 
 func GetWinner(room *models.Room) (string, error) {
-	var winnerUsername string
-	isGameOver := IsGameOver(room)
-
-	if !isGameOver {
-		return "", fmt.Errorf("game is not over yet, no winner")
+	clients := getAliveClients(room)
+	if len(clients) != 1 {
+		return "", fmt.Errorf(util.GameNotOverYetError)
 	}
 
-	for i := range room.Users {
-		user := room.Users[i]
-		if user.Lives != 0 {
-			winnerUsername = user.Username
-		}
-	}
-	return winnerUsername, nil
+	return clients[0].User.Username, nil
 }
 
-// helper functions
-func getUserIdxById(users []models.User, userId string) int {
-	var idx int
-	for i := range users {
-		if users[i].Id == userId {
-			idx = i
+func getAliveClients(room *models.Room) []*models.Client {
+	var alive []*models.Client
+	for _, client := range room.Clients {
+		if client.User.Lives > 0 {
+			alive = append(alive, client)
 		}
 	}
-	return idx
+	return alive
 }
 
 func isPlayerMentioned(player models.Player, players []models.Player) bool {

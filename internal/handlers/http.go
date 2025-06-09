@@ -59,7 +59,7 @@ func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
 
 		createdRoom, err := room.CreateRoom(user, team)
 		if err != nil {
-			writeResponse(w, 409, util.UserInRoomError, createdRoom.Id)
+			writeResponse(w, 409, util.UserAlreadyInRoomError, createdRoom.Id)
 			return
 		}
 
@@ -95,7 +95,7 @@ func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	err = room.JoinRoom(roomToJoin, payload.User)
 	if err != nil {
-		writeResponse(w, 400, util.UserInRoomError, roomToJoin.Id)
+		writeResponse(w, 400, util.UserAlreadyInRoomError, roomToJoin.Id)
 		return
 	}
 	writeResponse(w, 200, util.UserJoinedRoomSuccess, roomToJoin.Id)

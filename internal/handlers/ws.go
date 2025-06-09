@@ -50,7 +50,7 @@ func handleConnection(conn *websocket.Conn) {
 		}
 		switch {
 		case msg.Type == TEAM:
-			// select new team
+			fmt.Println("TEAM")
 		case msg.Type == GUESS:
 			// incoming guess
 		case msg.Type == VALIDATE:
