@@ -9,40 +9,31 @@ import (
 )
 
 func newTestRoom() models.Room {
-	users := []models.User{
-		{
-			Id:       "1",
-			Username: "userOne",
-			Lives:    3,
-		},
-		{
-			Id:       "2",
-			Username: "userTwo",
-			Lives:    3,
-		},
-		{
-			Id:       "3",
-			Username: "userThree",
-			Lives:    3,
-		},
-	}
-
 	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
-	// reset global state
-	Manager.rooms = make(map[string]*models.Room)
-
-	room := models.Room{
+	room := &models.Room{
 		Id:               "123",
-		Users:            users,
+		Clients:          make(map[string]*models.Client),
 		CurrentTurn:      0,
+		TurnOrder:        []string{"1", "2", "3"},
 		CurrentTeam:      team,
 		MentionedPlayers: nil,
 		State:            models.RoomState(models.INPROGRESS),
 		StartTime:        time.Now(),
 	}
-	return room
+
+	room.Clients["1"] = &models.Client{
+		User: models.User{Id: "1", Username: "user_1", Lives: 3},
+	}
+	room.Clients["2"] = &models.Client{
+		User: models.User{Id: "2", Username: "user_2", Lives: 3},
+	}
+	room.Clients["3"] = &models.Client{
+		User: models.User{Id: "3", Username: "user_3", Lives: 3},
+	}
+
+	return *room
 }
 
 func TestAddRoom(t *testing.T) {
@@ -79,10 +70,10 @@ func TestGetAllRooms(t *testing.T) {
 func TestJoinRoom(t *testing.T) {
 	room := newTestRoom()
 	Manager.AddRoom(&room)
-	user := models.User{Id: "3", Username: "userThree", Lives: 3}
-	JoinRoom(&room, user)
+	client := &models.Client{User: models.User{Id: "4", Username: "user_4", Lives: 3}, Conn: nil, Room: &room, Send: nil}
+	JoinRoom(&room, client)
 
-	if len(room.Users) != 4 {
-		t.Errorf("got %v, wanted %v", len(room.Users), 4)
+	if len(room.Clients) != 4 {
+		t.Errorf("got %v, wanted %v", len(room.Clients), 4)
 	}
 }

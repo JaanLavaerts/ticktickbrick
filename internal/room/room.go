@@ -45,7 +45,6 @@ func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {
 	return *room, nil
 }
 
-// TODO: DOUBLE CHECK THIS LOGIC AM VERY TRIED RN
 func JoinRoom(room *models.Room, client *models.Client) error {
 	if room == nil || client.User.Id == "" {
 		return fmt.Errorf(util.InvalidInputError)
@@ -55,10 +54,8 @@ func JoinRoom(room *models.Room, client *models.Client) error {
 		return fmt.Errorf(util.UserAlreadyInRoomError)
 	}
 
-	if !Manager.RoomExists(room.Id) {
-		return fmt.Errorf(util.RoomNotFoundError)
-	}
-
+	client.Room = room
+	room.TurnOrder = append(room.TurnOrder, client.User.Id)
 	room.Clients[client.User.Id] = client
 	Manager.users_rooms[client.User.Id] = room.Id
 	return nil
