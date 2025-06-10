@@ -50,14 +50,14 @@ func CreateRoomHandler(teams []models.Team) http.HandlerFunc {
 		}
 		defer req.Body.Close()
 
-		var user models.User
-		err = json.Unmarshal(body, &user)
+		var client models.Client
+		err = json.Unmarshal(body, &client)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
 
-		createdRoom, err := room.CreateRoom(user, team)
+		createdRoom, err := room.CreateRoom(&client, team)
 		if err != nil {
 			writeResponse(w, 409, util.UserAlreadyInRoomError, createdRoom.Id)
 			return

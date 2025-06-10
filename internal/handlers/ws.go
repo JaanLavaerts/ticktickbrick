@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 	"github.com/gorilla/websocket"
 )
 
@@ -35,15 +37,27 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go handleConnection(conn)
+	client := &models.Client{
+		User: models.User{
+			Id:       util.GenerateID(),
+			Username: "guest",
+			Lives:    3,
+		},
+		Conn: conn,
+		Send: make(chan []byte),
+	}
+
+	go handleConnection(client)
 }
 
-func handleConnection(conn *websocket.Conn) {
-	defer conn.Close()
+//TODO: split into write and read handlers
+
+func handleConnection(client *models.Client) {
+	defer client.Conn.Close()
 
 	var msg WSMessage
 	for {
-		err := conn.ReadJSON(&msg)
+		err := client.Conn.ReadJSON(&msg)
 		if err != nil {
 			log.Println(err)
 			return
@@ -56,7 +70,7 @@ func handleConnection(conn *websocket.Conn) {
 		case msg.Type == VALIDATE:
 			// validate
 		}
-		if err := conn.WriteMessage(websocket.TextMessage, msg.Payload); err != nil {
+		if err := client.Conn.WriteMessage(websocket.TextMessage, msg.Payload); err != nil {
 			fmt.Println("Error writing message:", err)
 			break
 		}
