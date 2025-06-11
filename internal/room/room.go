@@ -27,7 +27,7 @@ func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {
 	clients := make(map[string]*models.Client)
 	clients[client.User.Id] = client
 
-	randomId := generateTimestampID()
+	randomId := generateRoomId()
 	room := &models.Room{
 		Id:               randomId,
 		Clients:          clients,
@@ -104,6 +104,6 @@ func (r *RoomManager) RoomExists(id string) bool {
 	return ok
 }
 
-func generateTimestampID() string {
+func generateRoomId() string {
 	return fmt.Sprintf("room_%d", time.Now().UnixNano())
 }

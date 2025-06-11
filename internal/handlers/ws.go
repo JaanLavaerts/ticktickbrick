@@ -3,20 +3,22 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
-	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 	"github.com/gorilla/websocket"
 )
 
 type WSType string
 
 const (
-	TEAM     WSType = "TEAM"
-	GUESS    WSType = "GUESS"
-	VALIDATE WSType = "VALIDATE"
+	CREATE_ROOM WSType = "CREATE_ROOM"
+	JOIN_ROOM   WSType = "JOIN_ROOM"
+	TEAM        WSType = "TEAM"
+	GUESS       WSType = "GUESS"
+	VALIDATE    WSType = "VALIDATE"
 )
 
 type WSMessage struct {
@@ -33,13 +35,13 @@ var upgrader = websocket.Upgrader{
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("Error upgrading:", err)
+		slog.Error("Error upgrading connection", "error", err)
 		return
 	}
 
 	client := &models.Client{
 		User: models.User{
-			Id:       util.GenerateID(),
+			Id:       generateUserId(),
 			Username: "guest",
 			Lives:    3,
 		},
@@ -47,32 +49,34 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		Send: make(chan []byte),
 	}
 
-	go handleConnection(client)
+	handleRead(client)
+	go handleWrite(client)
 }
 
-//TODO: split into write and read handlers
-
-func handleConnection(client *models.Client) {
+// process incoming client messages
+func handleRead(client *models.Client) {
 	defer client.Conn.Close()
 
 	var msg WSMessage
 	for {
 		err := client.Conn.ReadJSON(&msg)
 		if err != nil {
-			log.Println(err)
+			slog.Error("reading JSON", "error", err)
 			return
 		}
 		switch {
-		case msg.Type == TEAM:
-			fmt.Println("TEAM")
-		case msg.Type == GUESS:
-			// incoming guess
-		case msg.Type == VALIDATE:
-			// validate
-		}
-		if err := client.Conn.WriteMessage(websocket.TextMessage, msg.Payload); err != nil {
-			fmt.Println("Error writing message:", err)
-			break
+		case msg.Type == CREATE_ROOM:
+			handleCreateRoom(msg.Payload, client)
+			slog.Info("room created", "client", client.User.Id)
 		}
 	}
+
+}
+
+func handleWrite(client *models.Client) {
+	// send message to client/ broadcast to all clients
+}
+
+func generateUserId() string {
+	return fmt.Sprintf("user_%d", time.Now().UnixNano())
 }
