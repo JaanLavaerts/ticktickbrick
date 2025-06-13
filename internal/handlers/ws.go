@@ -74,6 +74,8 @@ func handleRead(client *models.Client, team models.Team) {
 		switch {
 		case msg.Type == CREATE_ROOM:
 			handleCreateRoom(msg.Payload, client, team)
+		default:
+			slog.Error("not a supported type", "", nil)
 		}
 	}
 
@@ -85,7 +87,7 @@ func handleWrite(client *models.Client) {
 		err := client.Conn.WriteMessage(websocket.TextMessage, msg)
 
 		if err != nil {
-			slog.Error("write error", "error", err)
+			slog.Error("write", "error", err)
 			break
 		}
 	}
