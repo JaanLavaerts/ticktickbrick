@@ -18,6 +18,7 @@ const (
 	CREATE_ROOM  WSType = "CREATE_ROOM"
 	ROOM_CREATED WSType = "ROOM_CREATED"
 	JOIN_ROOM    WSType = "JOIN_ROOM"
+	ROOM_JOINED  WSType = "ROOM_JOINED"
 	TEAM         WSType = "TEAM"
 	GUESS        WSType = "GUESS"
 	VALIDATE     WSType = "VALIDATE"
@@ -74,6 +75,8 @@ func handleRead(client *models.Client, team models.Team) {
 		switch {
 		case msg.Type == CREATE_ROOM:
 			handleCreateRoom(msg.Payload, client, team)
+		case msg.Type == JOIN_ROOM:
+			handleJoinRoom(msg.Payload, client)
 		default:
 			slog.Error("not a supported type", "", nil)
 		}
@@ -93,11 +96,10 @@ func handleWrite(client *models.Client) {
 	}
 }
 
-func sendMessage(client *models.Client, messageType WSType, rawPayload any) {
+func sendMessage(client *models.Client, messageType WSType, rawPayload any) error {
 	payload, err := json.Marshal(rawPayload)
 	if err != nil {
-		slog.Error("marshaling payload", "error", err)
-		return
+		return err
 	}
 
 	response := &WSMessage{
@@ -107,11 +109,11 @@ func sendMessage(client *models.Client, messageType WSType, rawPayload any) {
 
 	data, err := json.Marshal(response)
 	if err != nil {
-		slog.Error("marshaling response", "error", err)
-		return
+		return err
 	}
 
 	client.Send <- data
+	return nil
 }
 
 func generateUserId() string {

@@ -22,6 +22,10 @@ func main() {
 	// dependency injection of teams
 	http.HandleFunc("/ws", handlers.WsHandler(teams))
 
+	// http routes
+	http.HandleFunc("/rooms", handlers.GetAllRooms)
+	http.HandleFunc("/room", handlers.GetRoom)
+
 	log.Println("server running on port 8080")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {

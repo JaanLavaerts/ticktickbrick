@@ -16,7 +16,7 @@ type RoomManager struct {
 
 var Manager = &RoomManager{
 	rooms:       make(map[string]*models.Room),
-	users_rooms: make(map[string]string), // map of user_id:room_id to keep track of which user is in what room
+	users_rooms: make(map[string]string),
 }
 
 func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {

@@ -12,13 +12,18 @@ type CreateRoomPayload struct {
 	User models.User `json:"user"`
 }
 
-func handleCreateRoom(payload json.RawMessage, client *models.Client, team models.Team) error {
+type JoinRoomPayload struct {
+	User   models.User `json:"user"`
+	RoomId string      `json:"room_id"`
+}
+
+func handleCreateRoom(payload json.RawMessage, client *models.Client, team models.Team) {
 	var createRoomPayload CreateRoomPayload
 	err := json.Unmarshal(payload, &createRoomPayload)
 	if err != nil {
 		slog.Error("creating room", "error", err)
 		sendMessage(client, ERROR, err.Error())
-		return err
+		return
 	}
 	client.User = createRoomPayload.User
 
@@ -26,10 +31,37 @@ func handleCreateRoom(payload json.RawMessage, client *models.Client, team model
 	if err != nil {
 		slog.Error("creating room", "error", err)
 		sendMessage(client, ERROR, err.Error())
-		return err
+		return
 	}
 
 	sendMessage(client, ROOM_CREATED, createdRoom.Id)
 	slog.Info("room created", "room", createdRoom.Id)
-	return nil
+}
+
+func handleJoinRoom(payload json.RawMessage, client *models.Client) {
+	var joinRoomPayload JoinRoomPayload
+	err := json.Unmarshal(payload, &joinRoomPayload)
+	if err != nil {
+		slog.Error("joining room", "error", err)
+		sendMessage(client, ERROR, err.Error())
+		return
+	}
+	client.User = joinRoomPayload.User
+
+	roomToJoin, err := room.Manager.GetRoom(joinRoomPayload.RoomId)
+	if err != nil {
+		slog.Error("joining room", "error", err)
+		sendMessage(client, ERROR, err.Error())
+		return
+	}
+
+	err = room.JoinRoom(roomToJoin, client)
+	if err != nil {
+		slog.Error("joining room", "error", err)
+		sendMessage(client, ERROR, err.Error())
+		return
+	}
+
+	sendMessage(client, ROOM_JOINED, NewRoomDTO(roomToJoin))
+	slog.Info("room joined", "room", roomToJoin.Id)
 }
