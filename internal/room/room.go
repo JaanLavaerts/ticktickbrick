@@ -40,7 +40,7 @@ func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {
 	}
 
 	client.Room = room
-	Manager.rooms[room.Id] = room
+	Manager.AddRoom(room)
 	Manager.users_rooms[client.User.Id] = room.Id
 	return *room, nil
 }

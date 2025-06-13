@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	players, err := data.LoadData[models.Player]("assets/players.json")
 	if err != nil {
 		log.Fatal(players, err)
@@ -20,7 +19,8 @@ func main() {
 		log.Fatal(teams, err)
 	}
 
-	http.HandleFunc("/ws", handlers.WsHandler)
+	// dependency injection of teams
+	http.HandleFunc("/ws", handlers.WsHandler(teams))
 
 	log.Println("server running on port 8080")
 	err = http.ListenAndServe(":8080", nil)

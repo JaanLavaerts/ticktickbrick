@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 	"github.com/gorilla/websocket"
 )
@@ -14,11 +15,13 @@ import (
 type WSType string
 
 const (
-	CREATE_ROOM WSType = "CREATE_ROOM"
-	JOIN_ROOM   WSType = "JOIN_ROOM"
-	TEAM        WSType = "TEAM"
-	GUESS       WSType = "GUESS"
-	VALIDATE    WSType = "VALIDATE"
+	CREATE_ROOM  WSType = "CREATE_ROOM"
+	ROOM_CREATED WSType = "ROOM_CREATED"
+	JOIN_ROOM    WSType = "JOIN_ROOM"
+	TEAM         WSType = "TEAM"
+	GUESS        WSType = "GUESS"
+	VALIDATE     WSType = "VALIDATE"
+	ERROR        WSType = "ERROR"
 )
 
 type WSMessage struct {
@@ -32,29 +35,33 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		slog.Error("Error upgrading connection", "error", err)
-		return
-	}
+func WsHandler(teams []models.Team) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		team := data.RandomTeam(teams)
 
-	client := &models.Client{
-		User: models.User{
-			Id:       generateUserId(),
-			Username: "guest",
-			Lives:    3,
-		},
-		Conn: conn,
-		Send: make(chan []byte),
-	}
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			slog.Error("error upgrading connection", "error", err)
+			return
+		}
 
-	handleRead(client)
-	go handleWrite(client)
+		client := &models.Client{
+			User: models.User{
+				Id:       generateUserId(),
+				Username: "guest",
+				Lives:    3,
+			},
+			Conn: conn,
+			Send: make(chan []byte),
+		}
+
+		go handleWrite(client)
+		handleRead(client, team)
+	}
 }
 
 // process incoming client messages
-func handleRead(client *models.Client) {
+func handleRead(client *models.Client, team models.Team) {
 	defer client.Conn.Close()
 
 	var msg WSMessage
@@ -66,15 +73,43 @@ func handleRead(client *models.Client) {
 		}
 		switch {
 		case msg.Type == CREATE_ROOM:
-			handleCreateRoom(msg.Payload, client)
-			slog.Info("room created", "client", client.User.Id)
+			handleCreateRoom(msg.Payload, client, team)
 		}
 	}
 
 }
 
+// send message to client/ broadcast to all clients
 func handleWrite(client *models.Client) {
-	// send message to client/ broadcast to all clients
+	for msg := range client.Send {
+		err := client.Conn.WriteMessage(websocket.TextMessage, msg)
+
+		if err != nil {
+			slog.Error("write error", "error", err)
+			break
+		}
+	}
+}
+
+func sendMessage(client *models.Client, messageType WSType, rawPayload any) {
+	payload, err := json.Marshal(rawPayload)
+	if err != nil {
+		slog.Error("marshaling payload", "error", err)
+		return
+	}
+
+	response := &WSMessage{
+		Type:    messageType,
+		Payload: payload,
+	}
+
+	data, err := json.Marshal(response)
+	if err != nil {
+		slog.Error("marshaling response", "error", err)
+		return
+	}
+
+	client.Send <- data
 }
 
 func generateUserId() string {
