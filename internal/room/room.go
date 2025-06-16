@@ -5,6 +5,7 @@ import (
 	"maps"
 	"time"
 
+	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
@@ -19,7 +20,8 @@ var Manager = &RoomManager{
 	users_rooms: make(map[string]string),
 }
 
-func CreateRoom(client *models.Client, team models.Team) (models.Room, error) {
+func CreateRoom(client *models.Client, teams []models.Team) (models.Room, error) {
+	team := data.RandomTeam(teams)
 	if otherRoom, err := Manager.GetRoomByUser(client.User); err == nil {
 		return *otherRoom, fmt.Errorf(util.UserAlreadyInRoomError)
 	}

@@ -17,7 +17,7 @@ type JoinRoomPayload struct {
 	RoomId string      `json:"room_id"`
 }
 
-func handleCreateRoom(payload json.RawMessage, client *models.Client, team models.Team) {
+func handleCreateRoom(payload json.RawMessage, client *models.Client, teams []models.Team) {
 	var createRoomPayload CreateRoomPayload
 	err := json.Unmarshal(payload, &createRoomPayload)
 	if err != nil {
@@ -27,7 +27,7 @@ func handleCreateRoom(payload json.RawMessage, client *models.Client, team model
 	}
 	client.User = createRoomPayload.User
 
-	createdRoom, err := room.CreateRoom(client, team)
+	createdRoom, err := room.CreateRoom(client, teams)
 	if err != nil {
 		slog.Error("creating room", "error", err)
 		sendMessage(client, ERROR, err.Error())
@@ -62,6 +62,7 @@ func handleJoinRoom(payload json.RawMessage, client *models.Client) {
 		return
 	}
 
-	sendMessage(client, ROOM_JOINED, NewRoomDTO(roomToJoin))
+	// sendMessage(client, ROOM_JOINED, NewRoomDTO(roomToJoin))
+	broadcastRoomUpdate(client.Room)
 	slog.Info("room joined", "room", roomToJoin.Id)
 }

@@ -8,7 +8,8 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
 
-func NextTurn(room *models.Room, newTeam models.Team) {
+func NextTurn(room *models.Room, teams []models.Team) {
+	newTeam := data.RandomTeam(teams)
 	room.CurrentTeam = newTeam
 	startIndex := room.CurrentTurn
 
@@ -23,12 +24,16 @@ func NextTurn(room *models.Room, newTeam models.Team) {
 	}
 }
 
-func SubmitAnswer(room *models.Room, userId string, player models.Player) (bool, error) {
+func SubmitGuess(room *models.Room, userId string, player models.Player) (bool, error) {
 	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
 	client, ok := room.Clients[userId]
 
 	if !ok {
 		return false, fmt.Errorf(util.UserNotInRoomError)
+	}
+
+	if !isClientTurn(room, userId) {
+		return false, fmt.Errorf("not client's turn")
 	}
 
 	if isPlayerMentioned(player, room.MentionedPlayers) {
@@ -85,4 +90,8 @@ func isPlayerMentioned(player models.Player, players []models.Player) bool {
 		}
 	}
 	return false
+}
+
+func isClientTurn(room *models.Room, userId string) bool {
+	return room.CurrentTurn < len(room.TurnOrder) && room.TurnOrder[room.CurrentTurn] == userId
 }

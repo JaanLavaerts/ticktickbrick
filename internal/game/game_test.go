@@ -95,7 +95,7 @@ func TestSubmitAnswer(t *testing.T) {
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
 	}
 
-	SubmitAnswer(&room, "1", player)
+	SubmitGuess(&room, "1", player)
 
 	userHasAnswered := room.Clients["1"].User.HasAnswered == true
 	playerIsMentioned := room.MentionedPlayers[0].Id == player.Id
@@ -117,7 +117,7 @@ func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 		Teams:     []string{"CLE", "MIA", "CLE", "LAL"},
 	}
 	room.MentionedPlayers = append(room.MentionedPlayers, player)
-	answer, err := SubmitAnswer(&room, "1", player)
+	answer, err := SubmitGuess(&room, "1", player)
 
 	if answer != false || err == nil {
 		t.Errorf("got %v, wanted %v", answer, err)
@@ -137,7 +137,7 @@ func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 		Abbreviation: "IND",
 	}
 	room.CurrentTeam = team
-	SubmitAnswer(&room, "1", player)
+	SubmitGuess(&room, "1", player)
 	wasLifeRemoved := room.Clients["1"].User.Lives == 2
 
 	if !wasLifeRemoved {
@@ -158,7 +158,7 @@ func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 		Abbreviation: "MIA",
 	}
 	room.CurrentTeam = team
-	SubmitAnswer(&room, "1", player)
+	SubmitGuess(&room, "1", player)
 	wasNoLifeRemoved := room.Clients["1"].User.Lives == 3
 
 	if !wasNoLifeRemoved {

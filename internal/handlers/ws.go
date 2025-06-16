@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 	"time"
 
-	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 	"github.com/gorilla/websocket"
 )
@@ -17,12 +17,15 @@ type WSType string
 const (
 	CREATE_ROOM  WSType = "CREATE_ROOM"
 	ROOM_CREATED WSType = "ROOM_CREATED"
+	UPDATE_ROOM  WSType = "UPDATE_ROOM"
 	JOIN_ROOM    WSType = "JOIN_ROOM"
-	ROOM_JOINED  WSType = "ROOM_JOINED"
-	TEAM         WSType = "TEAM"
+
 	GUESS        WSType = "GUESS"
-	VALIDATE     WSType = "VALIDATE"
-	ERROR        WSType = "ERROR"
+	GUESS_RESULT WSType = "GUESS_RESULT"
+
+	GAME_OVER WSType = "GAME_OVER"
+
+	ERROR WSType = "ERROR"
 )
 
 type WSMessage struct {
@@ -38,7 +41,6 @@ var upgrader = websocket.Upgrader{
 
 func WsHandler(teams []models.Team) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		team := data.RandomTeam(teams)
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -57,12 +59,12 @@ func WsHandler(teams []models.Team) http.HandlerFunc {
 		}
 
 		go handleWrite(client)
-		handleRead(client, team)
+		handleRead(client, teams)
 	}
 }
 
 // process incoming client messages
-func handleRead(client *models.Client, team models.Team) {
+func handleRead(client *models.Client, teams []models.Team) {
 	defer client.Conn.Close()
 
 	var msg WSMessage
@@ -74,9 +76,11 @@ func handleRead(client *models.Client, team models.Team) {
 		}
 		switch {
 		case msg.Type == CREATE_ROOM:
-			handleCreateRoom(msg.Payload, client, team)
+			handleCreateRoom(msg.Payload, client, teams)
 		case msg.Type == JOIN_ROOM:
 			handleJoinRoom(msg.Payload, client)
+		case msg.Type == GUESS:
+			handleGuess(msg.Payload, client, teams)
 		default:
 			slog.Error("not a supported type", "", nil)
 		}
@@ -84,7 +88,7 @@ func handleRead(client *models.Client, team models.Team) {
 
 }
 
-// send message to client/ broadcast to all clients
+// send message to client
 func handleWrite(client *models.Client) {
 	for msg := range client.Send {
 		err := client.Conn.WriteMessage(websocket.TextMessage, msg)
@@ -94,6 +98,24 @@ func handleWrite(client *models.Client) {
 			break
 		}
 	}
+}
+
+func broadcastRoomUpdate(room *models.Room) error {
+	newRoom := NewRoomDTO(room)
+
+	for client := range maps.Values(room.Clients) {
+		sendMessage(client, UPDATE_ROOM, newRoom)
+	}
+
+	return nil
+}
+
+func broadcastMessage(room *models.Room, messageType WSType, rawPayload any) error {
+	for client := range maps.Values(room.Clients) {
+		sendMessage(client, messageType, rawPayload)
+	}
+
+	return nil
 }
 
 func sendMessage(client *models.Client, messageType WSType, rawPayload any) error {

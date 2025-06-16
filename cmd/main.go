@@ -10,16 +10,15 @@ import (
 )
 
 func main() {
-	players, err := data.LoadData[models.Player]("assets/players.json")
+	_, err := data.LoadData[models.Player]("assets/players.json")
 	if err != nil {
-		log.Fatal(players, err)
+		log.Fatal(err)
 	}
 	teams, err := data.LoadData[models.Team]("assets/teams.json")
 	if err != nil {
-		log.Fatal(teams, err)
+		log.Fatal(err)
 	}
 
-	// dependency injection of teams
 	http.HandleFunc("/ws", handlers.WsHandler(teams))
 
 	// http routes
