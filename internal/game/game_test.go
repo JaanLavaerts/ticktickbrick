@@ -8,7 +8,7 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
-func newTestRoom() models.Room {
+func newTestRoom() (models.Room, []models.Team) {
 	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
@@ -33,14 +33,14 @@ func newTestRoom() models.Room {
 		User: models.User{Id: "3", Username: "user_3", Lives: 3},
 	}
 
-	return *room
+	return *room, teams
 }
 
 func TestNextTurnUserAlive(t *testing.T) {
-	room := newTestRoom()
+	room, teams := newTestRoom()
 	// check if nextturn is on index 1
 	nextTurn := room.CurrentTurn + 1
-	NextTurn(&room, room.CurrentTeam)
+	NextTurn(&room, teams)
 
 	if room.CurrentTurn != nextTurn {
 		t.Errorf("got %v, wanted %v", room.CurrentTurn, nextTurn)
@@ -48,12 +48,12 @@ func TestNextTurnUserAlive(t *testing.T) {
 }
 
 func TestNextTurnUserDead(t *testing.T) {
-	room := newTestRoom()
+	room, teams := newTestRoom()
 	// check if nextturn is on index 2 if index 1 is dead
 	nextTurn := room.CurrentTurn + 2
 
 	room.Clients["2"].User.Lives = 0
-	NextTurn(&room, room.CurrentTeam)
+	NextTurn(&room, teams)
 
 	if room.CurrentTurn != nextTurn {
 		t.Errorf("got %v, wanted %v", room.CurrentTurn, nextTurn)
@@ -61,25 +61,26 @@ func TestNextTurnUserDead(t *testing.T) {
 }
 
 func TestNextTurnUserAliveWrap(t *testing.T) {
-	room := newTestRoom()
+	room, teams := newTestRoom()
 	// start at last player, check if it wraps to first player
 	room.CurrentTurn = len(room.Clients) - 1
 	nextTurn := 0
 
-	NextTurn(&room, room.CurrentTeam)
+	NextTurn(&room, teams)
 
 	if room.CurrentTurn != nextTurn {
 		t.Errorf("got %v, wanted %v", room.CurrentTurn, nextTurn)
 	}
 }
+
 func TestNextTurnUserDeadWrap(t *testing.T) {
-	room := newTestRoom()
+	room, teams := newTestRoom()
 	// start at last player, check if it wraps to second player if first player is dead
 	room.CurrentTurn = len(room.Clients) - 1
 	nextTurn := 1
 
 	room.Clients["1"].User.Lives = 0
-	NextTurn(&room, room.CurrentTeam)
+	NextTurn(&room, teams)
 
 	if room.CurrentTurn != nextTurn {
 		t.Errorf("got %v, wanted %v", room.CurrentTurn, nextTurn)
@@ -87,7 +88,7 @@ func TestNextTurnUserDeadWrap(t *testing.T) {
 }
 
 func TestSubmitAnswer(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	player := models.Player{
 		Id:        2544,
 		Name:      "LeBron James",
@@ -109,7 +110,7 @@ func TestSubmitAnswer(t *testing.T) {
 }
 
 func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	player := models.Player{
 		Id:        2544,
 		Name:      "LeBron James",
@@ -125,7 +126,7 @@ func TestNotAbleToSubmitMentionedPlayer(t *testing.T) {
 }
 
 func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	player := models.Player{
 		Id:        2544,
 		Name:      "LeBron James",
@@ -146,7 +147,7 @@ func TestRemoveLifeWhenAnswerIsWrong(t *testing.T) {
 }
 
 func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	player := models.Player{
 		Id:        2544,
 		Name:      "LeBron James",
@@ -167,7 +168,7 @@ func TestNoLifeLostWhenAnswerIsRight(t *testing.T) {
 }
 
 func TestIsGameOver(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	for i := range room.Clients {
 		room.Clients[i].User.Lives = 0
 	}
@@ -180,7 +181,7 @@ func TestIsGameOver(t *testing.T) {
 }
 
 func TestGetWinnerGameIsOver(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 
 	for i := range room.Clients {
 		room.Clients[i].User.Lives = 0
@@ -194,7 +195,7 @@ func TestGetWinnerGameIsOver(t *testing.T) {
 }
 
 func TestGetWinnerGameIsNotOver(t *testing.T) {
-	room := newTestRoom()
+	room, _ := newTestRoom()
 	winner, err := GetWinner(&room)
 
 	if winner != "" || err == nil {
