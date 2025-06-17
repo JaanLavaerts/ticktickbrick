@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"maps"
 	"net/http"
 	"time"
 
@@ -103,14 +102,14 @@ func handleWrite(client *models.Client) {
 func broadcastRoomUpdate(room *models.Room) error {
 	newRoom := NewRoomDTO(room)
 
-	for client := range maps.Values(room.Clients) {
+	for _, client := range room.Clients {
 		sendMessage(client, UPDATE_ROOM, newRoom)
 	}
 	return nil
 }
 
 func broadcastMessage(room *models.Room, messageType WSType, rawPayload any) error {
-	for client := range maps.Values(room.Clients) {
+	for _, client := range room.Clients {
 		sendMessage(client, messageType, rawPayload)
 	}
 	return nil
