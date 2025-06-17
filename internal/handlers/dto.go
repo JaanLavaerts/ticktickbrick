@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"maps"
 	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
@@ -21,7 +20,7 @@ type RoomDTO struct {
 
 func NewRoomDTO(room *models.Room) RoomDTO {
 	var users []models.User
-	for i := range maps.Values(room.Clients) {
+	for _, i := range room.Clients {
 		users = append(users, i.User)
 	}
 	return RoomDTO{

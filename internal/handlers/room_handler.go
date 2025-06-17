@@ -9,12 +9,12 @@ import (
 )
 
 type CreateRoomPayload struct {
-	User models.User `json:"user"`
+	Username string `json:"username"`
 }
 
 type JoinRoomPayload struct {
-	User   models.User `json:"user"`
-	RoomId string      `json:"room_id"`
+	Username string `json:"username"`
+	RoomId   string `json:"room_id"`
 }
 
 type UserReadyPayload struct {
@@ -29,7 +29,10 @@ func handleCreateRoom(payload json.RawMessage, client *models.Client, teams []mo
 		sendMessage(client, ERROR, err.Error())
 		return
 	}
-	client.User = createRoomPayload.User
+
+	if createRoomPayload.Username != "" {
+		client.User.Username = createRoomPayload.Username
+	}
 
 	createdRoom, err := room.CreateRoom(client, teams)
 	if err != nil {
@@ -50,7 +53,10 @@ func handleJoinRoom(payload json.RawMessage, client *models.Client) {
 		sendMessage(client, ERROR, err.Error())
 		return
 	}
-	client.User = joinRoomPayload.User
+
+	if joinRoomPayload.Username != "" {
+		client.User.Username = joinRoomPayload.Username
+	}
 
 	roomToJoin, err := room.Manager.GetRoom(joinRoomPayload.RoomId)
 	if err != nil {
