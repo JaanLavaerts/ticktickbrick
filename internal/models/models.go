@@ -39,6 +39,7 @@ type User struct {
 	Username    string `json:"username"`
 	Lives       int    `json:"lives"`
 	HasAnswered bool   `json:"has_answered"`
+	IsReady     bool   `json:"is_ready"`
 }
 
 // data types

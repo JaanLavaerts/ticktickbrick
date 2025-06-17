@@ -17,6 +17,10 @@ type JoinRoomPayload struct {
 	RoomId string      `json:"room_id"`
 }
 
+type UserReadyPayload struct {
+	IsReady bool `json:"is_ready"`
+}
+
 func handleCreateRoom(payload json.RawMessage, client *models.Client, teams []models.Team) {
 	var createRoomPayload CreateRoomPayload
 	err := json.Unmarshal(payload, &createRoomPayload)
@@ -65,4 +69,18 @@ func handleJoinRoom(payload json.RawMessage, client *models.Client) {
 	// sendMessage(client, ROOM_JOINED, NewRoomDTO(roomToJoin))
 	broadcastRoomUpdate(client.Room)
 	slog.Info("room joined", "room", roomToJoin.Id)
+}
+
+func handleReady(payload json.RawMessage, client *models.Client) {
+	var userReadyPayload UserReadyPayload
+	err := json.Unmarshal(payload, &userReadyPayload)
+	if err != nil {
+		slog.Error("user ready", "error", err)
+		sendMessage(client, ERROR, err.Error())
+		return
+	}
+
+	client.User.IsReady = userReadyPayload.IsReady
+	broadcastRoomUpdate(client.Room)
+	slog.Info("user ready", "user", client.User.Username)
 }

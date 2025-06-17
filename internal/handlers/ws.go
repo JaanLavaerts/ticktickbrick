@@ -19,9 +19,10 @@ const (
 	ROOM_CREATED WSType = "ROOM_CREATED"
 	UPDATE_ROOM  WSType = "UPDATE_ROOM"
 	JOIN_ROOM    WSType = "JOIN_ROOM"
-	GUESS        WSType = "GUESS"
+	USER_GUESS   WSType = "USER_GUESS"
 	GUESS_RESULT WSType = "GUESS_RESULT"
 	GAME_OVER    WSType = "GAME_OVER"
+	USER_READY   WSType = "USER_READY"
 	ERROR        WSType = "ERROR"
 )
 
@@ -71,15 +72,17 @@ func handleRead(client *models.Client, teams []models.Team) {
 			slog.Error("reading JSON", "error", err)
 			return
 		}
-		switch {
-		case msg.Type == CREATE_ROOM:
+		switch msg.Type {
+		case CREATE_ROOM:
 			handleCreateRoom(msg.Payload, client, teams)
-		case msg.Type == JOIN_ROOM:
+		case JOIN_ROOM:
 			handleJoinRoom(msg.Payload, client)
-		case msg.Type == GUESS:
+		case USER_READY:
+			handleReady(msg.Payload, client)
+		case USER_GUESS:
 			handleGuess(msg.Payload, client, teams)
 		default:
-			slog.Error("not a supported type", "", nil)
+			slog.Error("not a supported WSType", "", nil)
 		}
 	}
 
