@@ -19,13 +19,10 @@ const (
 	ROOM_CREATED WSType = "ROOM_CREATED"
 	UPDATE_ROOM  WSType = "UPDATE_ROOM"
 	JOIN_ROOM    WSType = "JOIN_ROOM"
-
 	GUESS        WSType = "GUESS"
 	GUESS_RESULT WSType = "GUESS_RESULT"
-
-	GAME_OVER WSType = "GAME_OVER"
-
-	ERROR WSType = "ERROR"
+	GAME_OVER    WSType = "GAME_OVER"
+	ERROR        WSType = "ERROR"
 )
 
 type WSMessage struct {
@@ -106,7 +103,6 @@ func broadcastRoomUpdate(room *models.Room) error {
 	for client := range maps.Values(room.Clients) {
 		sendMessage(client, UPDATE_ROOM, newRoom)
 	}
-
 	return nil
 }
 
@@ -114,7 +110,6 @@ func broadcastMessage(room *models.Room, messageType WSType, rawPayload any) err
 	for client := range maps.Values(room.Clients) {
 		sendMessage(client, messageType, rawPayload)
 	}
-
 	return nil
 }
 
