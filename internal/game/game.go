@@ -5,6 +5,7 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+	"github.com/JaanLavaerts/ticktickbrick/internal/room"
 	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
 
@@ -24,23 +25,27 @@ func NextTurn(room *models.Room, teams []models.Team) {
 	}
 }
 
-func SubmitGuess(room *models.Room, userId string, player models.Player) (bool, error) {
-	answer := data.PlayerPlayedFor(player, room.CurrentTeam)
-	client, ok := room.Clients[userId]
+func SubmitGuess(r *models.Room, userId string, player models.Player) (bool, error) {
+	answer := data.PlayerPlayedFor(player, r.CurrentTeam)
+	client, ok := r.Clients[userId]
 
 	if !ok {
 		return false, fmt.Errorf(util.UserNotInRoomError)
 	}
 
-	if !isClientTurn(room, userId) {
-		return false, fmt.Errorf("not client's turn")
+	if !room.AllUsersReady(r) {
+		return false, fmt.Errorf("not all players are ready")
 	}
 
-	if isPlayerMentioned(player, room.MentionedPlayers) {
+	if !isClientTurn(r, userId) {
+		return false, fmt.Errorf("not your turn")
+	}
+
+	if isPlayerMentioned(player, r.MentionedPlayers) {
 		return false, fmt.Errorf("player already mentioned")
 	}
 
-	room.MentionedPlayers = append(room.MentionedPlayers, player)
+	r.MentionedPlayers = append(r.MentionedPlayers, player)
 
 	if !answer {
 		client.User.Lives--
