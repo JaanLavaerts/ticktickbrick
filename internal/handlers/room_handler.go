@@ -83,4 +83,10 @@ func handleReady(payload json.RawMessage, client *models.Client) {
 	client.User.IsReady = userReadyPayload.IsReady
 	broadcastRoomUpdate(client.Room)
 	slog.Info("user ready", "user", client.User.Username)
+
+	if room.AllUsersReady(client.Room) {
+		room.SetRoomState(client.Room, models.INPROGRESS)
+		broadcastRoomUpdate(client.Room)
+		slog.Info("room inprogress", "room", client.Room.Id)
+	}
 }

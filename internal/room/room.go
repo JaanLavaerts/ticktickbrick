@@ -63,6 +63,21 @@ func JoinRoom(room *models.Room, client *models.Client) error {
 	return nil
 }
 
+func SetRoomState(room *models.Room, state models.RoomState) {
+	room.State = state
+}
+
+func AllUsersReady(room *models.Room) bool {
+	allReady := true
+	for _, client := range room.Clients {
+		if !client.User.IsReady {
+			allReady = false
+			break
+		}
+	}
+	return allReady
+}
+
 func (r *RoomManager) AddRoom(room *models.Room) {
 	r.rooms[room.Id] = room
 }

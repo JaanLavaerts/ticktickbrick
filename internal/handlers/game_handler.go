@@ -6,6 +6,7 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/game"
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
+	"github.com/JaanLavaerts/ticktickbrick/internal/room"
 )
 
 type GuessPayload struct {
@@ -29,7 +30,7 @@ func handleGuess(payload json.RawMessage, client *models.Client, teams []models.
 	}
 
 	if game.IsGameOver(client.Room) {
-		client.Room.State = models.ENDED
+		room.SetRoomState(client.Room, models.ENDED)
 
 		winner, err := game.GetWinner(client.Room)
 		if err != nil {
