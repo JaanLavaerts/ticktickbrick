@@ -1,0 +1,3 @@
+- error message consts 
+- mutex lock/unlock helper function in room.go
+- write concurrent tests to test race conditions

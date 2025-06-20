@@ -8,7 +8,7 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
-func newTestRoom() models.Room {
+func newTestRoom() *models.Room {
 	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
 	team := data.RandomTeam(teams)
 
@@ -33,12 +33,12 @@ func newTestRoom() models.Room {
 		User: models.User{Id: "3", Username: "user_3", Lives: 3},
 	}
 
-	return *room
+	return room
 }
 
 func TestAddRoom(t *testing.T) {
 	room := newTestRoom()
-	Manager.AddRoom(&room)
+	Manager.AddRoom(room)
 
 	if len(Manager.rooms) <= 0 {
 		t.Errorf("got %v, wanted %v", len(Manager.rooms), 1)
@@ -48,7 +48,7 @@ func TestAddRoom(t *testing.T) {
 func TestGetRoom(t *testing.T) {
 	room := newTestRoom()
 	room.Id = "1"
-	Manager.AddRoom(&room)
+	Manager.AddRoom(room)
 	firstRoom, _ := Manager.GetRoom(room.Id)
 
 	if firstRoom.Id != "1" {
@@ -58,7 +58,7 @@ func TestGetRoom(t *testing.T) {
 
 func TestGetAllRooms(t *testing.T) {
 	room := newTestRoom()
-	Manager.AddRoom(&room)
+	Manager.AddRoom(room)
 	allRooms, _ := Manager.GetAllRooms()
 	allRoomsCount := len(allRooms)
 
@@ -69,9 +69,9 @@ func TestGetAllRooms(t *testing.T) {
 
 func TestJoinRoom(t *testing.T) {
 	room := newTestRoom()
-	Manager.AddRoom(&room)
-	client := &models.Client{User: models.User{Id: "4", Username: "user_4", Lives: 3}, Conn: nil, Room: &room, Send: nil}
-	JoinRoom(&room, client)
+	Manager.AddRoom(room)
+	client := &models.Client{User: models.User{Id: "4", Username: "user_4", Lives: 3}, Conn: nil, Room: room, Send: nil}
+	JoinRoom(room, client)
 
 	if len(room.Clients) != 4 {
 		t.Errorf("got %v, wanted %v", len(room.Clients), 4)

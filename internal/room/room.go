@@ -3,6 +3,7 @@ package room
 import (
 	"fmt"
 	"maps"
+	"sync"
 	"time"
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
@@ -13,6 +14,7 @@ import (
 type RoomManager struct {
 	rooms       map[string]*models.Room
 	users_rooms map[string]string
+	mu          sync.RWMutex
 }
 
 var Manager = &RoomManager{
@@ -20,10 +22,10 @@ var Manager = &RoomManager{
 	users_rooms: make(map[string]string),
 }
 
-func CreateRoom(client *models.Client, teams []models.Team) (models.Room, error) {
+func CreateRoom(client *models.Client, teams []models.Team) (*models.Room, error) {
 	team := data.RandomTeam(teams)
 	if otherRoom, err := Manager.GetRoomByUser(client.User); err == nil {
-		return *otherRoom, fmt.Errorf(util.UserAlreadyInRoomError)
+		return otherRoom, fmt.Errorf(util.UserAlreadyInRoomError)
 	}
 
 	clients := make(map[string]*models.Client)
@@ -41,13 +43,19 @@ func CreateRoom(client *models.Client, teams []models.Team) (models.Room, error)
 		StartTime:        time.Now(),
 	}
 
+	Manager.mu.Lock()
+	defer Manager.mu.Unlock()
+
 	client.Room = room
 	Manager.AddRoom(room)
 	Manager.users_rooms[client.User.Id] = room.Id
-	return *room, nil
+	return room, nil
 }
 
 func JoinRoom(room *models.Room, client *models.Client) error {
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	if room == nil || client.User.Id == "" {
 		return fmt.Errorf(util.InvalidInputError)
 	}
@@ -59,15 +67,23 @@ func JoinRoom(room *models.Room, client *models.Client) error {
 	client.Room = room
 	room.TurnOrder = append(room.TurnOrder, client.User.Id)
 	room.Clients[client.User.Id] = client
+	Manager.mu.Lock()
 	Manager.users_rooms[client.User.Id] = room.Id
+	Manager.mu.Unlock()
 	return nil
 }
 
 func SetRoomState(room *models.Room, state models.RoomState) {
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	room.State = state
 }
 
 func AllUsersReady(room *models.Room) bool {
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	allReady := true
 	for _, client := range room.Clients {
 		if !client.User.IsReady {
@@ -79,10 +95,16 @@ func AllUsersReady(room *models.Room) bool {
 }
 
 func (r *RoomManager) AddRoom(room *models.Room) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.rooms[room.Id] = room
 }
 
 func (r *RoomManager) GetRoom(id string) (*models.Room, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	room, ok := r.rooms[id]
 	if !ok {
 		return nil, fmt.Errorf(util.RoomNotFoundError)
@@ -91,6 +113,9 @@ func (r *RoomManager) GetRoom(id string) (*models.Room, error) {
 }
 
 func (r *RoomManager) GetAllRooms() (map[string]*models.Room, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	rooms := make(map[string]*models.Room)
 	maps.Copy(rooms, r.rooms)
 	if len(rooms) == 0 {
@@ -100,6 +125,9 @@ func (r *RoomManager) GetAllRooms() (map[string]*models.Room, error) {
 }
 
 func (r *RoomManager) GetRoomByUser(user models.User) (*models.Room, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	id, ok := r.users_rooms[user.Id]
 	if !ok {
 		return nil, fmt.Errorf(util.UserDoesntHaveRoomError)
@@ -112,11 +140,17 @@ func (r *RoomManager) GetRoomByUser(user models.User) (*models.Room, error) {
 }
 
 func (r *RoomManager) HasRoom(user models.User) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	_, ok := r.users_rooms[user.Id]
 	return ok
 }
 
 func (r *RoomManager) RoomExists(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	_, ok := r.rooms[id]
 	return ok
 }

@@ -10,6 +10,9 @@ import (
 )
 
 func NextTurn(room *models.Room, teams []models.Team) {
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	newTeam := data.RandomTeam(teams)
 	room.CurrentTeam = newTeam
 	startIndex := room.CurrentTurn
@@ -37,6 +40,9 @@ func SubmitGuess(r *models.Room, userId string, player models.Player) (bool, err
 		return false, fmt.Errorf("not all players are ready")
 	}
 
+	r.Mu.Lock()
+	defer r.Mu.Unlock()
+
 	if !isClientTurn(r, userId) {
 		return false, fmt.Errorf("not your turn")
 	}
@@ -56,6 +62,9 @@ func SubmitGuess(r *models.Room, userId string, player models.Player) (bool, err
 }
 
 func RemoveLife(room *models.Room, userId string) error {
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	client, ok := room.Clients[userId]
 	if !ok {
 		return fmt.Errorf(util.UserNotInRoomError)
@@ -65,16 +74,21 @@ func RemoveLife(room *models.Room, userId string) error {
 }
 
 func IsGameOver(room *models.Room) bool {
+	room.Mu.RLock()
+	defer room.Mu.RUnlock()
+
 	clients := getAliveClients(room)
 	return len(clients) <= 1
 }
 
 func GetWinner(room *models.Room) (string, error) {
+	room.Mu.RLock()
+	defer room.Mu.RUnlock()
+
 	clients := getAliveClients(room)
 	if len(clients) != 1 {
 		return "", fmt.Errorf(util.GameNotOverYetError)
 	}
-
 	return clients[0].User.Username, nil
 }
 

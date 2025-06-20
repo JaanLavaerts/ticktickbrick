@@ -1,6 +1,7 @@
 package models
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,6 +25,8 @@ type Room struct {
 	CurrentTeam      Team               `json:"current_team"`
 	State            RoomState          `json:"state"`
 	StartTime        time.Time          `json:"start_time"`
+
+	Mu sync.RWMutex
 }
 
 type Client struct {
