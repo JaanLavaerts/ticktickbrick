@@ -11,6 +11,9 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
+var Teams []models.Team
+var Players []models.Player
+
 func LoadData[T any](fileString string) ([]T, error) {
 	var data []T
 
@@ -33,10 +36,28 @@ func LoadData[T any](fileString string) ([]T, error) {
 	return data, nil
 }
 
+func LoadTeams(fileString string) error {
+	teams, err := LoadData[models.Team](fileString)
+	if err != nil {
+		return fmt.Errorf("error loading teams: %w", err)
+	}
+	Teams = teams
+	return nil
+}
+
+func LoadPlayers(fileString string) error {
+	players, err := LoadData[models.Player](fileString)
+	if err != nil {
+		return fmt.Errorf("error loading players: %w", err)
+	}
+	Players = players
+	return nil
+}
+
 func PlayerPlayedFor(player models.Player, team models.Team) bool {
 	return slices.Contains(player.Teams, team.Abbreviation)
 }
 
-func RandomTeam(teams []models.Team) models.Team {
-	return teams[rand.IntN(len(teams))]
+func RandomTeam() models.Team {
+	return Teams[rand.IntN(len(Teams))]
 }

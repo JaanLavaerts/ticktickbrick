@@ -9,8 +9,11 @@ import (
 )
 
 func newTestRoom() *models.Room {
-	teams, _ := data.LoadData[models.Team]("../../assets/teams.json")
-	team := data.RandomTeam(teams)
+	err := data.LoadTeams("../../assets/teams.json")
+	if err != nil {
+		panic("error loading teams: " + err.Error())
+	}
+	team := data.RandomTeam()
 
 	room := &models.Room{
 		Id:               "123",

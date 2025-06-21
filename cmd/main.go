@@ -6,20 +6,20 @@ import (
 
 	"github.com/JaanLavaerts/ticktickbrick/internal/data"
 	"github.com/JaanLavaerts/ticktickbrick/internal/handlers"
-	"github.com/JaanLavaerts/ticktickbrick/internal/models"
 )
 
 func main() {
-	_, err := data.LoadData[models.Player]("assets/players.json")
+
+	err := data.LoadTeams("assets/teams.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error loading teams: %v", err)
 	}
-	teams, err := data.LoadData[models.Team]("assets/teams.json")
+	err = data.LoadPlayers("assets/players.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error loading players: %v", err)
 	}
 
-	http.HandleFunc("/ws", handlers.WsHandler(teams))
+	http.HandleFunc("/ws", handlers.WsHandler)
 
 	// http routes
 	http.HandleFunc("/rooms", handlers.GetAllRooms)

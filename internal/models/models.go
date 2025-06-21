@@ -19,12 +19,14 @@ const (
 type Room struct {
 	Id               string             `json:"id"`
 	Clients          map[string]*Client `json:"clients"`
-	CurrentTurn      int                `json:"current_turn"` // index of a user in []Users
-	TurnOrder        []string           `json:"turn_order"`   // slice of client IDs
+	CurrentTurn      int                `json:"current_turn"`
+	TurnOrder        []string           `json:"turn_order"` // slice of client IDs
 	MentionedPlayers []Player           `json:"mentioned_players"`
 	CurrentTeam      Team               `json:"current_team"`
 	State            RoomState          `json:"state"`
 	StartTime        time.Time          `json:"start_time"`
+	Timer            *time.Timer        `json:"-"`
+	Ticker           *time.Ticker       `json:"-"`
 
 	Mu sync.RWMutex
 }

@@ -37,32 +37,30 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WsHandler(teams []models.Team) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func WsHandler(w http.ResponseWriter, r *http.Request) {
 
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			slog.Error("error upgrading connection", "error", err)
-			return
-		}
-
-		client := &models.Client{
-			User: models.User{
-				Id:       generateUserId(),
-				Username: "guest",
-				Lives:    3,
-			},
-			Conn: conn,
-			Send: make(chan []byte),
-		}
-
-		go handleWrite(client)
-		handleRead(client, teams)
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		slog.Error("error upgrading connection", "error", err)
+		return
 	}
+
+	client := &models.Client{
+		User: models.User{
+			Id:       generateUserId(),
+			Username: "guest",
+			Lives:    3,
+		},
+		Conn: conn,
+		Send: make(chan []byte),
+	}
+
+	go handleWrite(client)
+	handleRead(client)
 }
 
 // process incoming client messages
-func handleRead(client *models.Client, teams []models.Team) {
+func handleRead(client *models.Client) {
 	defer client.Conn.Close()
 
 	var msg WSMessage
@@ -74,13 +72,13 @@ func handleRead(client *models.Client, teams []models.Team) {
 		}
 		switch msg.Type {
 		case CREATE_ROOM:
-			handleCreateRoom(msg.Payload, client, teams)
+			handleCreateRoom(msg.Payload, client)
 		case JOIN_ROOM:
 			handleJoinRoom(msg.Payload, client)
 		case USER_READY:
 			handleReady(msg.Payload, client)
 		case USER_GUESS:
-			handleGuess(msg.Payload, client, teams)
+			handleGuess(msg.Payload, client)
 		default:
 			slog.Error("not a supported WSType", "", nil)
 		}

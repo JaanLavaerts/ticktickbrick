@@ -9,11 +9,11 @@ import (
 	"github.com/JaanLavaerts/ticktickbrick/internal/util"
 )
 
-func NextTurn(room *models.Room, teams []models.Team) {
+func NextTurn(room *models.Room) {
 	room.Mu.Lock()
 	defer room.Mu.Unlock()
 
-	newTeam := data.RandomTeam(teams)
+	newTeam := data.RandomTeam()
 	room.CurrentTeam = newTeam
 	startIndex := room.CurrentTurn
 

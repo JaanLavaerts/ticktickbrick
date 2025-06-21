@@ -22,8 +22,8 @@ var Manager = &RoomManager{
 	users_rooms: make(map[string]string),
 }
 
-func CreateRoom(client *models.Client, teams []models.Team) (*models.Room, error) {
-	team := data.RandomTeam(teams)
+func CreateRoom(client *models.Client) (*models.Room, error) {
+	team := data.RandomTeam()
 	if otherRoom, err := Manager.GetRoomByUser(client.User); err == nil {
 		return otherRoom, fmt.Errorf(util.UserAlreadyInRoomError)
 	}

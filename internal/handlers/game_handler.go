@@ -13,7 +13,7 @@ type GuessPayload struct {
 	Player models.Player `json:"player"`
 }
 
-func handleGuess(payload json.RawMessage, client *models.Client, teams []models.Team) {
+func handleGuess(payload json.RawMessage, client *models.Client) {
 	var guessPayload GuessPayload
 	err := json.Unmarshal(payload, &guessPayload)
 	if err != nil {
@@ -41,7 +41,7 @@ func handleGuess(payload json.RawMessage, client *models.Client, teams []models.
 		broadcastMessage(client.Room, GAME_OVER, winner)
 		slog.Info("game_over", "winner", winner)
 	} else {
-		game.NextTurn(client.Room, teams)
+		game.NextTurn(client.Room)
 	}
 
 	sendMessage(client, GUESS_RESULT, result)

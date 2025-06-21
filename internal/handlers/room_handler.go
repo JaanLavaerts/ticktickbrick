@@ -21,7 +21,7 @@ type UserReadyPayload struct {
 	IsReady bool `json:"is_ready"`
 }
 
-func handleCreateRoom(payload json.RawMessage, client *models.Client, teams []models.Team) {
+func handleCreateRoom(payload json.RawMessage, client *models.Client) {
 	var createRoomPayload CreateRoomPayload
 	err := json.Unmarshal(payload, &createRoomPayload)
 	if err != nil {
@@ -34,7 +34,7 @@ func handleCreateRoom(payload json.RawMessage, client *models.Client, teams []mo
 		client.User.Username = createRoomPayload.Username
 	}
 
-	createdRoom, err := room.CreateRoom(client, teams)
+	createdRoom, err := room.CreateRoom(client)
 	if err != nil {
 		slog.Error("creating room", "error", err)
 		sendMessage(client, ERROR, err.Error())
